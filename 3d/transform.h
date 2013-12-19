@@ -29,6 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "utils/geometry.h"
 #include "utils/typedefinitions.h"
+
 class Transform
 {
 public:

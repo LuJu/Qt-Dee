@@ -32,11 +32,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QVector>
 #include <QtOpenGL>
 #include <QGLWidget>
-#include "qgl.h"
-#include "core/core.h"
+
 #include "vertex.h"
+
 #include "utils/curve.h"
-class Curve;
+
 class Mesh
 {
 public:

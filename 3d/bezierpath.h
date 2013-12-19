@@ -24,21 +24,44 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
+#ifndef BEZIERPATH_H
+#define BEZIERPATH_H
 
-#ifndef TYPEDEFINITIONS_H
-#define TYPEDEFINITIONS_H
+#include "movementpath.h"
 
-#include "utils/geometry.h"
+//! Bezier paths
+/*!
+        This class is used to compute 4 points Bezier curves. To define the points, use the _bezier[4] array
+        \n Status  2 : Implemented for 4 points curvres
+    */
+class BezierPath : public MovementPath
+{
+public:
+    BezierPath();
+    BezierPath(Point3d<float> origin);
 
-typedef Point3d<float> Point3df ;
-typedef Point3d<double> Point3dd ;
-typedef Point3d<int>   Point3di ;
-typedef Point3d<long>   Point3dl ;
-typedef Point3d<unsigned short>   Point3dus ;
-typedef Vector3d<float> Vector3df ;
-typedef Vector3d<double> Vector3dd ;
-typedef Vector3d<int> Vector3di ;
-typedef Vector3d<long> Vector3dl ;
+    //! Calculates the points of the path
+    /*!
+        This function calculates all the points of the path and stores themin a qVector.\n
+        If the user calls the nextPosition() function while this one hasn't been called yet, it will automatically will
+        \n Status  2 : partially implemented (for four points)
+        \param  input
+        \return output
+    */
+    void compute(Point3d<float> * b, int level=5);
+    virtual Point3d<float> nextPosition();
+    Point3df _bezier[4];
+    virtual void drawPath(bool partial = true);
+    virtual void displayPoints();
 
+protected:
+    void appendPoints(Point3d<float> * p);
+    void bezierRecursive (Point3d<float> * b, int level);
+    QVector<Point3df> _bezier_points;
 
-#endif // TYPEDEFINITIONS_H
+private:
+    void __build();
+    bool _computed;
+};
+
+#endif // BEZIERPATH_H

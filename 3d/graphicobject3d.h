@@ -29,8 +29,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QVector>
 #include <QMatrix4x4>
-#include "utils/geometry.h"
 
+#include "utils/geometry.h"
 
 #include "mesh.h"
 #include "transform.h"

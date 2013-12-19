@@ -1,0 +1,16 @@
+#ifndef MOVEMENTPATHLIST_H
+#define MOVEMENTPATHLIST_H
+
+#include <QList>
+#include "movementpath.h"
+
+class MovementPathList : public QList<MovementPath*>
+{
+public:
+    explicit MovementPathList();
+    ~MovementPathList();
+    //! Calls the nextPosition() function for each active paths
+    void computePaths();
+};
+
+#endif // MOVEMENTPATHLIST_H

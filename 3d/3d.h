@@ -24,21 +24,12 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
+#ifndef 3D_H
+#define 3D_H
 
-#ifndef TYPEDEFINITIONS_H
-#define TYPEDEFINITIONS_H
+#include "3d/graphicobject3d.h"
+#include "3d/mesh.h"
+#include "3d/vertex.h"
+#include "3d/transform.h"
 
-#include "utils/geometry.h"
-
-typedef Point3d<float> Point3df ;
-typedef Point3d<double> Point3dd ;
-typedef Point3d<int>   Point3di ;
-typedef Point3d<long>   Point3dl ;
-typedef Point3d<unsigned short>   Point3dus ;
-typedef Vector3d<float> Vector3df ;
-typedef Vector3d<double> Vector3dd ;
-typedef Vector3d<int> Vector3di ;
-typedef Vector3d<long> Vector3dl ;
-
-
-#endif // TYPEDEFINITIONS_H
+#endif // 3D_H

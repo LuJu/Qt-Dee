@@ -29,6 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <QMap>
 #include <QColor>
+
 #include <utils/triplet.h>
 #include <utils/maths.h>
 

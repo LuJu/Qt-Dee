@@ -25,20 +25,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef TYPEDEFINITIONS_H
-#define TYPEDEFINITIONS_H
+#ifndef UTILS_H
+#define UTILS_H
 
+#include "utils/triplet.h"
+#include "utils/extendedtriplet.h"
 #include "utils/geometry.h"
+#include "utils/typedefinitions.h"
+#include "utils/csvparser.h"
+#include "utils/curve.h"
+#include "utils/maths.h"
 
-typedef Point3d<float> Point3df ;
-typedef Point3d<double> Point3dd ;
-typedef Point3d<int>   Point3di ;
-typedef Point3d<long>   Point3dl ;
-typedef Point3d<unsigned short>   Point3dus ;
-typedef Vector3d<float> Vector3df ;
-typedef Vector3d<double> Vector3dd ;
-typedef Vector3d<int> Vector3di ;
-typedef Vector3d<long> Vector3dl ;
-
-
-#endif // TYPEDEFINITIONS_H
+#endif // UTILS_H
