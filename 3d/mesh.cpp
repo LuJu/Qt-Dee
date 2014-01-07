@@ -42,10 +42,12 @@ void Mesh::render() const{
         const Point3df * vertices_array = &(vertices[0]._point);
         const Point3df * normal_array = &(vertices[0]._normal);
         const float * color_array = vertices[0]._color;
+//        const float * textures_array = vertices[0]._texture;
         const unsigned short * polygons = _polygons.constData();
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
+//        glEnableClientState(GL_COLOR_ARRAY);
+        glBindTexture(GL_TEXTURE_2D,_texture);
         {
             glNormalPointer(GL_FLOAT,size,normal_array);
             glColorPointer(4,GL_FLOAT,size,color_array);
@@ -101,21 +103,24 @@ void Mesh::render() const{
 }
 
 void Mesh::loadFromOBJ(QString filepath){
-    std::ifstream file(filepath.toStdString().c_str(),ios::in);
-    std::string line;
+
+    QFile file(filepath);
+    QTextStream stream(&file);
     QString str;
     QStringList list;
-    QVector<Point3df> buffer;
+//    QVector<Point3df> buffer;
     QVector<Point3df> _temp_vertices;
     QVector<Point3df> _temp_normals;
+    QVector<Point3df> _temp_textures;
 
     QVector<Point3dus> _temp_polygons;
     QVector<Point3dus> _temp_texture_polygons;
     QVector<Point3dus> _temp_normal_polygons;
-    bool allocated = false;
-    if (file.is_open()) {
-        while (std::getline(file,line)) {
-            str=QString(line.c_str());
+
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        str = stream.readLine();
+        while (!str.isNull()) {
+
             if(str[0]=='v')
             {
                 list = str.split(" ",QString::SkipEmptyParts);
@@ -128,17 +133,20 @@ void Mesh::loadFromOBJ(QString filepath){
                     if (list.size()==4) {
                         _temp_normals.append(Point3df(list[1].toFloat(),list[2].toFloat(),list[3].toFloat()));
                     } else qWarning()<<"Invalid line"<<str;
+
+                } else if(str[1]=='t') {
+                    if (list.size()==3) {
+                        _temp_textures.append(Point3df(list[1].toFloat(),list[2].toFloat(),0));
+                    } else qWarning()<<"Invalid line"<<str;
                 }
             } else if (str[0]=='f'){
-                if(allocated==false){
-                    allocated=true;
-                    buffer=QVector<Point3df>(_temp_normals.size()+1000);
-                }
+//                if(allocated==false){
+//                    allocated=true;
+//                    buffer=QVector<Point3df>(_temp_normals.size()+1000);
+//                }
 
                 list = str.split(QRegExp("[//| ]"),QString::SkipEmptyParts);
-                Point3df normal;
-                Point3df verte ;
-                if(line[1]==' '){
+                if(str[1]==' '){
                     switch (list.size()) {
                     case 4: // Only polygons
                         _temp_polygons.append(Point3dus(list[1].toInt(),list[2].toInt(),list[4].toInt()));
@@ -167,26 +175,32 @@ void Mesh::loadFromOBJ(QString filepath){
             } else {
 //                qDebug()<<"Ignored line : "<<str;
             }
+            str = stream.readLine();
         }
         file.close();
-        fillVertices(_temp_vertices,_temp_normals,_temp_polygons,_temp_texture_polygons,_temp_normal_polygons);
+        fillVertices(_temp_vertices,_temp_normals,_temp_textures,_temp_polygons,_temp_texture_polygons,_temp_normal_polygons);
     }
 }
 
 void Mesh::fillVertices(const QVector<Point3df>& _temp_vertices,
                   const QVector<Point3df>& _temp_normals,
+                  const QVector<Point3df>& _temp_textures,
                   const QVector<Point3dus>& _temp_polygons,
                   const QVector<Point3dus>& _temp_texture_polygons,
                   const QVector<Point3dus>& _temp_normal_polygons){
+
     for(int i = 0;i<_temp_polygons.size();i++){
+
         int index[3];
         Vertex v[3];
         Point3dus polygon = _temp_polygons.at(i);
         Point3dus normal_polygon = _temp_normal_polygons.at(i);
+        Point3dus texture_polygon = _temp_texture_polygons.at(i);
 
         for(int j = 0 ; j< 3; j++){
             v[j]._point=_temp_vertices[polygon[j]-1];
             v[j]._normal=_temp_normals[normal_polygon[j]-1];
+            v[j]._texture=_temp_textures[texture_polygon[j]-1];
             v[j]._color[0]=v[j]._point[0];
             v[j]._color[1]=v[j]._point[1];
             v[j]._color[2]=v[j]._point[2];

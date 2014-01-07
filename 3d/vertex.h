@@ -42,6 +42,7 @@ public:
 //    color
     Point3df _point;
     Point3df _normal;
+    Point3df _texture;
     float _color[4];
 
     bool _display_normal;

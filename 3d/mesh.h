@@ -66,11 +66,12 @@ public:
     static void render(const Curve& curve, const QColor& color, int thickness, bool points=false);
 
     static void drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression);
-protected:
     GLuint _texture;
+protected:
 private:
     void fillVertices(const QVector<Point3df>& _temp_vertices,
                       const QVector<Point3df>& _temp_normals,
+                      const QVector<Point3df>& _temp_textures,
                       const QVector<Point3dus>& _temp_polygons,
                       const QVector<Point3dus>& _temp_texture_polygons,
                       const QVector<Point3dus>& _temp_normal_polygons);
