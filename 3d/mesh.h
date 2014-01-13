@@ -69,12 +69,22 @@ public:
     GLuint _texture;
 protected:
 private:
-    void fillVertices(const QVector<Point3df>& _temp_vertices,
-                      const QVector<Point3df>& _temp_normals,
-                      const QVector<Point3df>& _temp_textures,
-                      const QVector<Point3dus>& _temp_polygons,
-                      const QVector<Point3dus>& _temp_texture_polygons,
-                      const QVector<Point3dus>& _temp_normal_polygons);
+    void fillVertice(
+                    const QVector<Point3df>& _temp_vertices,
+                    const QVector<Point3df>& _temp_normals,
+                    const QVector<Point3df>& _temp_textures,
+                    const Point3dus& temp_polygon,
+                    const Point3dus& temp_normal_polygon,
+                    const Point3dus& temp_texture_polygon);
+    void fillVertice(
+                    const QVector<Point3df>& _temp_vertices,
+                    const QVector<Point3df>& _temp_normals,
+                    const Point3dus& temp_polygon,
+                    const Point3dus& temp_normal_polygon);
+    void fillVertice(
+                    const QVector<Point3df>& _temp_vertices,
+                    const Point3dus& temp_polygon);
+
     void loadFromOBJ(QString filepath);
     void simpleShape();
 
@@ -83,6 +93,9 @@ private:
 
     polygontype _type;
     Mesh(Mesh& triangle);
+
+    bool _normals_activated;
+    bool _textures_activated;
 };
 
 #endif // TRIANGLE_MESH3D_H

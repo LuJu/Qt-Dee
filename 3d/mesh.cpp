@@ -29,7 +29,9 @@ POSSIBILITY OF SUCH DAMAGE.
 using namespace std;
 
 Mesh::Mesh():
-    _type(triangle)
+    _type(triangle),
+    _normals_activated(true),
+    _textures_activated(true)
 {
 }
 
@@ -45,11 +47,13 @@ void Mesh::render() const{
 //        const float * textures_array = vertices[0]._texture;
         const unsigned short * polygons = _polygons.constData();
         glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
-//        glEnableClientState(GL_COLOR_ARRAY);
+        if(_normals_activated)
+            glEnableClientState(GL_NORMAL_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
         glBindTexture(GL_TEXTURE_2D,_texture);
         {
-            glNormalPointer(GL_FLOAT,size,normal_array);
+            if(_normals_activated)
+                glNormalPointer(GL_FLOAT,size,normal_array);
             glColorPointer(4,GL_FLOAT,size,color_array);
             glVertexPointer(3,GL_FLOAT,size,vertices_array);
 
@@ -70,7 +74,8 @@ void Mesh::render() const{
 
         }
         glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_NORMAL_ARRAY);
+        if(_normals_activated)
+            glDisableClientState(GL_NORMAL_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
 
 
@@ -108,15 +113,14 @@ void Mesh::loadFromOBJ(QString filepath){
     QTextStream stream(&file);
     QString str;
     QStringList list;
-//    QVector<Point3df> buffer;
+
     QVector<Point3df> _temp_vertices;
     QVector<Point3df> _temp_normals;
     QVector<Point3df> _temp_textures;
 
-    QVector<Point3dus> _temp_polygons;
-    QVector<Point3dus> _temp_texture_polygons;
-    QVector<Point3dus> _temp_normal_polygons;
-
+    Point3dus temp_polygon,temp_texture_polygon,temp_normal_polygon;
+    QTime load_time;
+    load_time.start();
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         str = stream.readLine();
         while (!str.isNull()) {
@@ -149,19 +153,22 @@ void Mesh::loadFromOBJ(QString filepath){
                 if(str[1]==' '){
                     switch (list.size()) {
                     case 4: // Only polygons
-                        _temp_polygons.append(Point3dus(list[1].toInt(),list[2].toInt(),list[4].toInt()));
-//                        _temp_normal_polygons.append(Point3dus(-1,-1,-1));
-//                        _temp_texture_polygons.append(Point3dus(-1,-1,-1));
+                        temp_polygon = Point3dus(list[1].toInt(),list[2].toInt(),list[4].toInt());
+                        _normals_activated = false;
+                        _textures_activated = false;
+                        fillVertice(_temp_vertices,temp_polygon);
                         break;
                     case 7: // Only polygons and normals
-                        _temp_polygons.append(Point3dus(list[1].toInt(),list[3].toInt(),list[5].toInt()));
-//                        _temp_texture_polygons.append(Point3dus(-1,-1,-1));
-                        _temp_normal_polygons.append(Point3dus(list[2].toInt(),list[4].toInt(),list[6].toInt()));
+                        temp_polygon = Point3dus(list[1].toInt(),list[3].toInt(),list[5].toInt());
+                        temp_normal_polygon = Point3dus(list[2].toInt(),list[4].toInt(),list[6].toInt());
+                        _textures_activated = false;
+                        fillVertice(_temp_vertices,_temp_normals,temp_polygon,temp_normal_polygon);
                         break;
                     case 10:// Polygons and normals and textures
-                        _temp_polygons.append(Point3dus(list[1].toInt(),list[4].toInt(),list[7].toInt()));
-                        _temp_texture_polygons.append(Point3dus(list[2].toInt(),list[5].toInt(),list[8].toInt()));
-                        _temp_normal_polygons.append(Point3dus(list[3].toInt(),list[6].toInt(),list[9].toInt()));
+                        temp_polygon = Point3dus(list[1].toInt(),list[4].toInt(),list[7].toInt());
+                        temp_texture_polygon = Point3dus(list[2].toInt(),list[5].toInt(),list[8].toInt());
+                        temp_normal_polygon = Point3dus(list[3].toInt(),list[6].toInt(),list[9].toInt());
+                        fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon);
                         break;
                     default:
                         qWarning()<<"Invalid line"<<str;
@@ -178,47 +185,110 @@ void Mesh::loadFromOBJ(QString filepath){
             str = stream.readLine();
         }
         file.close();
-        fillVertices(_temp_vertices,_temp_normals,_temp_textures,_temp_polygons,_temp_texture_polygons,_temp_normal_polygons);
     }
+
+    qDebug()<<"loading time: "<<load_time.elapsed();
 }
 
-void Mesh::fillVertices(const QVector<Point3df>& _temp_vertices,
+
+
+void Mesh::fillVertice(
+                  const QVector<Point3df>& _temp_vertices,
                   const QVector<Point3df>& _temp_normals,
                   const QVector<Point3df>& _temp_textures,
-                  const QVector<Point3dus>& _temp_polygons,
-                  const QVector<Point3dus>& _temp_texture_polygons,
-                  const QVector<Point3dus>& _temp_normal_polygons){
+                  const Point3dus& temp_polygon,
+                  const Point3dus& temp_normal_polygon,
+                  const Point3dus& temp_texture_polygon){
 
-    for(int i = 0;i<_temp_polygons.size();i++){
+    int index[3];
+    Vertex v[3];
+    Point3dus polygon = temp_polygon;
+    Point3dus normal_polygon = temp_normal_polygon;
+    Point3dus texture_polygon = temp_texture_polygon;
 
-        int index[3];
-        Vertex v[3];
-        Point3dus polygon = _temp_polygons.at(i);
-        Point3dus normal_polygon = _temp_normal_polygons.at(i);
-        Point3dus texture_polygon = _temp_texture_polygons.at(i);
+    for(int j = 0 ; j< 3; j++){
+        v[j]._point=_temp_vertices[polygon[j]-1];
+        v[j]._normal=_temp_normals[normal_polygon[j]-1];
 
-        for(int j = 0 ; j< 3; j++){
-            v[j]._point=_temp_vertices[polygon[j]-1];
-            v[j]._normal=_temp_normals[normal_polygon[j]-1];
-            v[j]._texture=_temp_textures[texture_polygon[j]-1];
-            v[j]._color[0]=v[j]._point[0];
-            v[j]._color[1]=v[j]._point[1];
-            v[j]._color[2]=v[j]._point[2];
-            v[j]._color[3]=0.5;
-            index[j] = _vertices.indexOf(v[j]);
+        v[j]._texture=_temp_textures[texture_polygon[j]-1];
+        v[j]._color[0]=v[j]._normal[0];
+        v[j]._color[1]=v[j]._normal[1];
+        v[j]._color[2]=v[j]._normal[2];
+        v[j]._color[3]=0.5;
+        index[j] = _vertices.indexOf(v[j]);
 
-            if(index[j]==-1){
-                _vertices.append(v[j]);
-                index[j] = _vertices.size()-1;
-            } else {
-                index[j]=index[j];
-            }
+        if(index[j]==-1){
+            _vertices.append(v[j]);
+            index[j] = _vertices.size()-1;
         }
-        _polygons.append(index[0]);
-        _polygons.append(index[1]);
-        _polygons.append(index[2]);
     }
+    _polygons.append(index[0]);
+    _polygons.append(index[1]);
+    _polygons.append(index[2]);
+
 }
+
+void Mesh::fillVertice(
+        const QVector<Point3df>& _temp_vertices,
+        const QVector<Point3df>& _temp_normals,
+        const Point3dus& temp_polygon,
+        const Point3dus& temp_normal_polygon){
+
+    int index[3];
+    Vertex v[3];
+    Point3dus polygon = temp_polygon;
+    Point3dus normal_polygon = temp_normal_polygon;
+
+    for(int j = 0 ; j< 3; j++){
+        v[j]._point=_temp_vertices[polygon[j]-1];
+        v[j]._normal=_temp_normals[normal_polygon[j]-1];
+
+        v[j]._color[0]=v[j]._normal[0];
+        v[j]._color[1]=v[j]._normal[1];
+        v[j]._color[2]=v[j]._normal[2];
+        v[j]._color[3]=0.5;
+        index[j] = _vertices.indexOf(v[j]);
+
+        if(index[j]==-1){
+            _vertices.append(v[j]);
+            index[j] = _vertices.size()-1;
+        }
+    }
+    _polygons.append(index[0]);
+    _polygons.append(index[1]);
+    _polygons.append(index[2]);
+
+}
+
+void Mesh::fillVertice(
+        const QVector<Point3df>& _temp_vertices,
+        const Point3dus& temp_polygon){
+
+    int index[3];
+    Vertex v[3];
+    Point3dus polygon = temp_polygon;
+
+    for(int j = 0 ; j< 3; j++){
+        v[j]._point=_temp_vertices[polygon[j]-1];
+
+        v[j]._color[0]=v[j]._point[0];
+        v[j]._color[1]=v[j]._point[1];
+        v[j]._color[2]=v[j]._point[2];
+        v[j]._color[3]=0.5;
+        index[j] = _vertices.indexOf(v[j]);
+
+        if(index[j]==-1){
+            _vertices.append(v[j]);
+            index[j] = _vertices.size()-1;
+        }
+    }
+    _polygons.append(index[0]);
+    _polygons.append(index[1]);
+    _polygons.append(index[2]);
+
+}
+
+
 
 
 void Mesh::loadFromFile(QString filepath, int filetype){
