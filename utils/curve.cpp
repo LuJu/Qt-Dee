@@ -49,7 +49,7 @@ float Curve::get_value(float x) const{
     } else {
         QMap<float,float>::const_iterator it2 = it;
         it2--;
-        interpolate(it2.key(),it2.value(),it.key(),it.value(),x);
+        return interpolate(it2.key(),it2.value(),it.key(),it.value(),x);
     }
 }
 

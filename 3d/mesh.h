@@ -67,6 +67,7 @@ public:
 
     static void drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression);
     GLuint _texture;
+
 protected:
 private:
     void fillVertice(
