@@ -27,8 +27,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TRIPLET_H
 #define TRIPLET_H
 
-#include <QDebug>
-
 //! Container of 3 objects of the same type.
 //! The different values can be accessed with the [] operator or with the x,y and z methods
 template<class T> class Triplet
