@@ -393,3 +393,127 @@ void Mesh::drawGrid(QRect bounds, const QColor &color, int thickness, int horizo
     mesh.render();
 }
 
+void Mesh::addCircle(float position_y, float radius){
+    for (int i = 0; i < 360; i+=5) {
+        Vertex v;
+        v.set_color(1,1,1,1);
+        v._point = Point3df(0,position_y,0);
+        _vertices.append(v);
+        v._point = Point3df(radius * qSin(deg2rad(i)),position_y,radius * qCos(deg2rad(i)));
+        _vertices.append(v);
+        v._point = Point3df(radius * qSin(deg2rad(i+5)),position_y,radius * qCos(deg2rad(i+5)));
+        _vertices.append(v);
+        for (int j = 0; j < 3; ++j) {
+            _polygons.append(_polygons.size());
+        }
+    }
+}
+
+Point3df Mesh::calculateNormal(Point3df u, Point3df v){
+    Point3df normal;
+    normal.x((u.y() * v.z()) - (u.z() * v.y()));
+    normal.y((u.z() * v.x()) - (u.x() * v.z()));
+    normal.z((u.x() * v.y()) - (u.y() * v.x()));
+    return normal;
+}
+
+Point3df Mesh::addPolygon(Vertex& a,Vertex& b,Vertex& c){
+    Point3df normal = calculateNormal(a._point,b._point);
+    a._normal = normal;
+    b._normal = normal;
+    c._normal = normal;
+    _vertices.append(a);
+    _polygons.append(_polygons.size());
+    _vertices.append(b);
+    _polygons.append(_polygons.size());
+    _vertices.append(c);
+    _polygons.append(_polygons.size());
+}
+
+void Mesh::addHalfSphere(float position_y, float radius, bool up){
+    float k=0.0;
+    while (k<90){
+        for (int i = 0; i < 360; i+=5) {
+            _normals_activated = true;
+            Vertex v[3];
+            if (up) {
+                v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
+                                    position_y +radius * qSin(deg2rad(k+5)),
+                                    radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))));
+                v[1]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k)),
+                                    position_y + radius * qSin(deg2rad(k)),
+                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k)));
+                v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
+                                    position_y +radius * qSin(deg2rad(k)),
+                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
+                addPolygon(v[0],v[1],v[2]);
+
+                v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
+                                    position_y + radius * qSin(deg2rad(k+5)),
+                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
+                v[1]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
+                                    position_y + radius * qSin(deg2rad(k)),
+                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
+                v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k+5)),
+                                    position_y + radius * qSin(deg2rad(k+5)),
+                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k+5)));
+                addPolygon(v[0],v[1],v[2]);
+            }
+            else if (!up){
+                v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
+                                    position_y - radius * qSin(deg2rad(k+5)),
+                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
+                v[1]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k)),
+                                    position_y - radius * qSin(deg2rad(k)),
+                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k)));
+                v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
+                                    position_y - radius * qSin(deg2rad(k)),
+                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
+                addPolygon(v[0],v[1],v[2]);
+
+                v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
+                                    position_y - radius * qSin(deg2rad(k+5)),
+                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
+                v[1]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
+                                    position_y - radius * qSin(deg2rad(k)),
+                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
+                v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k+5)),
+                                    position_y - radius * qSin(deg2rad(k+5)),
+                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k+5)));
+                addPolygon(v[0],v[1],v[2]);
+
+            }
+        }
+        k+=5;
+    }
+}
+
+void Mesh::addTube(float length, float radius){
+    for (int i = 0; i < 360; i+=5) {
+        Vertex v[3];
+//        v.set_color(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)),1 );
+        v[0]._point = Point3df(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)));
+        v[1]._point = Point3df(radius * qSin(deg2rad(i+5)),-length,radius * qCos(deg2rad(i+5)));
+        v[2]._point = Point3df(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i)));
+        addPolygon(v[0],v[1],v[2]);
+
+        v[0]._point = Point3df(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i)));
+        v[1]._point = Point3df(radius * qSin(deg2rad(i+5)),length,radius * qCos(deg2rad(i+5)));
+        v[2]._point = Point3df(radius * qSin(deg2rad(i+5)),-length,radius * qCos(deg2rad(i+5)));
+        addPolygon(v[0],v[1],v[2]);
+
+        //        _vertices.append(Vertex(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i))));
+        //        _vertices.append(Vertex(radius * qSin(deg2rad(i+1)),length,radius * qCos(deg2rad(i+1))));
+//        for (int j = 0; j < 6; ++j) {
+//            _polygons.append(_polygons.size());
+//        }
+    }
+}
+
+void Mesh::fromCapsuleShape(float length, float radius) {
+    addHalfSphere(length/2,radius,true);
+    addTube(length/2,radius);
+    addHalfSphere(-length/2,radius,false);
+}
+
+

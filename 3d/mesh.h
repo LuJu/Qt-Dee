@@ -68,6 +68,14 @@ public:
     static void drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression);
     GLuint _texture;
 
+    void fromCapsuleShape(float length, float radius);
+    void addCircle(float position_y, float radius);
+    void addHalfSphere(float position_y, float radius, bool up);
+    void addTube(float length, float radius);
+
+    Point3df calculateNormal(Point3df u, Point3df v);
+    Point3df addPolygon(Vertex &a, Vertex &b, Vertex &c);
+
 protected:
 private:
     void fillVertice(

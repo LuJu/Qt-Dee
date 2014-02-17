@@ -48,6 +48,8 @@ public:
     bool _display_normal;
     bool _display_textures;
     bool _display_colors;
+
+
 };
 bool operator==(const Vertex& a, const Vertex& b);
 #endif // VERTEX_H
