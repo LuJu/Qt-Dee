@@ -301,15 +301,19 @@ void Mesh::loadFromFile(QString filepath, int filetype){
     }
 }
 
-void Mesh::render(const Curve& curve, const QColor &color, int thickness, bool points){
+void Mesh::render(const Curve& curve,int normalization, const QColor &color, int thickness, bool points){
     Mesh mesh;
     mesh.set_type(Mesh::line_strip);
-    if(points) mesh.set_type(Mesh::points);
+    if(points){
+
+        mesh.set_type(Mesh::points);
+        glPointSize((GLfloat)thickness);
+    }
     QMap<float,float>::const_iterator iterator = curve.begin();
     int i = 0;
     glLineWidth((GLfloat)thickness);
     while (iterator != curve.end()){
-        Vertex v(iterator.key(),iterator.value(),0);
+        Vertex v(iterator.key(),iterator.value()/normalization,0);
         v._color[0]=color.red();
         v._color[1]=color.green();
         v._color[2]=color.blue();
@@ -432,57 +436,42 @@ Point3df Mesh::addPolygon(Vertex& a,Vertex& b,Vertex& c){
 
 void Mesh::addHalfSphere(float position_y, float radius, bool up){
     float k=0.0;
+    float direction = up?radius:-radius;
     while (k<90){
         for (int i = 0; i < 360; i+=5) {
             _normals_activated = true;
             Vertex v[3];
-            if (up) {
-                v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
-                                    position_y +radius * qSin(deg2rad(k+5)),
-                                    radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))));
-                v[1]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k)),
-                                    position_y + radius * qSin(deg2rad(k)),
-                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k)));
-                v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
-                                    position_y +radius * qSin(deg2rad(k)),
-                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
-                addPolygon(v[0],v[1],v[2]);
+            v[0].set_color(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
+                           position_y +direction * qSin(deg2rad(k+5)),
+                           radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))),1 );
+            v[1].set_color(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
+                           position_y +direction * qSin(deg2rad(k+5)),
+                           radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))),1 );
+            v[2].set_color(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
+                           position_y +direction * qSin(deg2rad(k+5)),
+                           radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))),1 );
+            v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
+                                position_y +direction * qSin(deg2rad(k+5)),
+                                radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))));
+            v[1]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k)),
+                                position_y + direction * qSin(deg2rad(k)),
+                                radius * qCos(deg2rad(i)) * qCos(deg2rad(k)));
+            v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
+                                position_y +direction * qSin(deg2rad(k)),
+                                radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
+            addPolygon(v[0],v[1],v[2]);
 
-                v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
-                                    position_y + radius * qSin(deg2rad(k+5)),
-                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
-                v[1]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
-                                    position_y + radius * qSin(deg2rad(k)),
-                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
-                v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k+5)),
-                                    position_y + radius * qSin(deg2rad(k+5)),
-                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k+5)));
-                addPolygon(v[0],v[1],v[2]);
-            }
-            else if (!up){
-                v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
-                                    position_y - radius * qSin(deg2rad(k+5)),
-                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
-                v[1]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k)),
-                                    position_y - radius * qSin(deg2rad(k)),
-                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k)));
-                v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
-                                    position_y - radius * qSin(deg2rad(k)),
-                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
-                addPolygon(v[0],v[1],v[2]);
+            v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
+                                position_y + direction * qSin(deg2rad(k+5)),
+                                radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
+            v[1]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
+                                position_y + direction * qSin(deg2rad(k)),
+                                radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
+            v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k+5)),
+                                position_y + direction * qSin(deg2rad(k+5)),
+                                radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k+5)));
+            addPolygon(v[0],v[1],v[2]);
 
-                v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
-                                    position_y - radius * qSin(deg2rad(k+5)),
-                                    radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
-                v[1]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
-                                    position_y - radius * qSin(deg2rad(k)),
-                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
-                v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k+5)),
-                                    position_y - radius * qSin(deg2rad(k+5)),
-                                    radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k+5)));
-                addPolygon(v[0],v[1],v[2]);
-
-            }
         }
         k+=5;
     }
@@ -491,7 +480,9 @@ void Mesh::addHalfSphere(float position_y, float radius, bool up){
 void Mesh::addTube(float length, float radius){
     for (int i = 0; i < 360; i+=5) {
         Vertex v[3];
-//        v.set_color(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)),1 );
+        v[0].set_color(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)),1 );
+        v[1].set_color(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)),1 );
+        v[2].set_color(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)),1 );
         v[0]._point = Point3df(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)));
         v[1]._point = Point3df(radius * qSin(deg2rad(i+5)),-length,radius * qCos(deg2rad(i+5)));
         v[2]._point = Point3df(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i)));

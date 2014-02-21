@@ -63,7 +63,7 @@ public:
     QVector<unsigned short>& get_polygons() {return _polygons;}
     QVector<Vertex>& get_vertices() {return _vertices;}
 
-    static void render(const Curve& curve, const QColor& color, int thickness, bool points=false);
+    static void render(const Curve& curve, int normalization, const QColor& color, int thickness, bool points=false);
 
     static void drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression);
     GLuint _texture;
