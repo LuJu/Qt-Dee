@@ -44,18 +44,20 @@ void Mesh::render() const{
         const Point3df * vertices_array = &(vertices[0]._point);
         const Point3df * normal_array = &(vertices[0]._normal);
         const float * color_array = vertices[0]._color;
-//        const float * textures_array = vertices[0]._texture;
+        const Point3df * textures_array = &(vertices[0]._texture);
         const unsigned short * polygons = _polygons.constData();
         glEnableClientState(GL_VERTEX_ARRAY);
         if(_normals_activated)
             glEnableClientState(GL_NORMAL_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glBindTexture(GL_TEXTURE_2D,_texture);
         {
             if(_normals_activated)
                 glNormalPointer(GL_FLOAT,size,normal_array);
             glColorPointer(4,GL_FLOAT,size,color_array);
             glVertexPointer(3,GL_FLOAT,size,vertices_array);
+            glTexCoordPointer(3,GL_FLOAT,size,textures_array);
 
             switch(_type){
             case triangle :
@@ -209,8 +211,8 @@ void Mesh::fillVertice(
     for(int j = 0 ; j< 3; j++){
         v[j]._point=_temp_vertices[polygon[j]-1];
         v[j]._normal=_temp_normals[normal_polygon[j]-1];
-
         v[j]._texture=_temp_textures[texture_polygon[j]-1];
+
         v[j]._color[0]=v[j]._normal[0];
         v[j]._color[1]=v[j]._normal[1];
         v[j]._color[2]=v[j]._normal[2];
