@@ -55,18 +55,20 @@ GLuint Mesh::loadTexture(const QString &textureName)
 
 void Mesh::enableClientStates() const{
     glEnableClientState(GL_VERTEX_ARRAY);
-//    if(_normals_activated)
-//        glEnableClientState(GL_NORMAL_ARRAY);
-//    glEnableClientState(GL_COLOR_ARRAY);
-//    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    if(_normals_activated)
+        glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+        if(_textures_activated)
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 }
 void Mesh::disableClientStates() const{
     glDisableClientState(GL_VERTEX_ARRAY);
-//    if(_normals_activated)
-//        glDisableClientState(GL_NORMAL_ARRAY);
-//    glDisableClientState(GL_COLOR_ARRAY);
-//    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    if(_normals_activated)
+        glDisableClientState(GL_NORMAL_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    if(_textures_activated)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void Mesh::insertArrayValues() const{
@@ -78,11 +80,29 @@ void Mesh::insertArrayValues() const{
     const float *    color_array    = vertices[0]._color;
     const Point3df * textures_array = &(vertices[0]._texture);
 
-        if(_normals_activated)
-            glNormalPointer(GL_FLOAT,size,normal_array);
-        glColorPointer(4,GL_FLOAT,size,color_array);
-        glVertexPointer(3,GL_FLOAT,size,vertices_array);
+    if(_normals_activated)
+        glNormalPointer(GL_FLOAT,size,normal_array);
+    glColorPointer(4,GL_FLOAT,size,color_array);
+    glVertexPointer(3,GL_FLOAT,size,vertices_array);
+    if(_textures_activated)
         glTexCoordPointer(3,GL_FLOAT,size,textures_array);
+}
+
+void Mesh::drawTextures(const unsigned short * polygons, int number_of_polygons) const{
+    switch(_type){
+    case triangle :
+        glDrawElements(GL_TRIANGLES,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+        break;
+    case lines:
+        glDrawElements(GL_LINES,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+        break;
+    case line_strip:
+        glDrawElements(GL_LINE_STRIP,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+        break;
+    case points:
+        glDrawElements(GL_POINTS,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+        break;
+    }
 }
 
 
@@ -91,55 +111,44 @@ void Mesh::render() const{
     int next_polygon_index = 0;
     int number_of_polygons = 0;
     Material current_material;
-    int current_material_index = -1;
+    int current_material_index = 0;
     GLuint texture;
+    const unsigned short * polygons;
 
-
-
-    if(current_material_index<_material_indices.size()){
+    if(_material_indices.size() > 0){
         enableClientStates();
         insertArrayValues();
-        while(current_material_index<_material_indices.size()-1  /*&& current_material_index !=1*/){
+        while(current_material_index<_material_indices.size()){
 
-
-            current_material_index++;
             current_polygon_index = _material_indices.keys()[current_material_index];
-            current_material = _materials[_material_indices.value(_material_indices.keys()[current_material_index])];
-            if ( current_material_index < _material_indices.size()-1)
-                next_polygon_index = _material_indices.keys()[current_material_index+1];
-            else
-                next_polygon_index = -1;
-            number_of_polygons = next_polygon_index - current_polygon_index;
+            if (_material_indices.value(_material_indices.keys()[current_material_index]) == -1) {
+                qWarning()<<"Material not found";
+            } else {
+                current_material = _materials[_material_indices.value(_material_indices.keys()[current_material_index])];
+                if ( current_material_index < _material_indices.size()-1)
+                    next_polygon_index = _material_indices.keys()[current_material_index+1];
+                else
+                    next_polygon_index = _polygons.size();
 
-            const unsigned short * polygons = &(_polygons.constData()[current_polygon_index]);
+                number_of_polygons = next_polygon_index - current_polygon_index;
 
+                texture = current_material._texture_index;
+                polygons = &(_polygons.constData()[current_polygon_index]);
 
-    //        texture = _materials[0]._texture_index;
-            texture = current_material._texture_index;
-//            number_of_polygons = _polygons.size();
-
-
-            glBindTexture(GL_TEXTURE_2D,texture);
-            {
-                switch(_type){
-                case triangle :
-                    glDrawElements(GL_TRIANGLES,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
-                    break;
-                case lines:
-                    glDrawElements(GL_LINES,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
-                    break;
-                case line_strip:
-                    glDrawElements(GL_LINE_STRIP,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
-                    break;
-                case points:
-                    glDrawElements(GL_POINTS,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
-                    break;
-                }
+                glBindTexture(GL_TEXTURE_2D,texture);
+                drawTextures(polygons,number_of_polygons);
             }
+            current_material_index++;
         }
         disableClientStates();
     } else {
-        qWarning()<<"attempting to render empty mesh";
+        enableClientStates();
+        insertArrayValues();
+        polygons = _polygons.constData();
+        if(_vertices.size() > 0){
+            drawTextures(polygons,_polygons.size());
+        } else qDebug()<<"Attempting to render empty mesh";
+        disableClientStates();
     }
 }
 
@@ -224,6 +233,7 @@ void Mesh::loadFromOBJ(QString filepath){
                 parseMaterials(str.replace(0,7,""));
             } else if (str.startsWith("usemtl")){
                 current_mtl_index = findMaterialIndex(str.replace(0,7,""));
+                if (current_mtl_index == -1) qWarning()<<"Impossible to find corresponding material";
                 _material_indices.insert(_polygons.size(),current_mtl_index);
             } else if(str[0]=='v') {
                 list = str.split(" ",QString::SkipEmptyParts);
@@ -242,11 +252,6 @@ void Mesh::loadFromOBJ(QString filepath){
                     } else qWarning()<<"Invalid line"<<str;
                 }
             } else if (str[0]=='f'){
-//                if(allocated==false){
-//                    allocated=true;
-//                    buffer=QVector<Point3df>(_temp_normals.size()+1000);
-//                }
-
                 list = str.split(QRegExp("[//| ]"),QString::SkipEmptyParts);
                 if(str[1]==' '){
                     switch (list.size()) {
@@ -275,9 +280,7 @@ void Mesh::loadFromOBJ(QString filepath){
                 } else qWarning()<<"Invalid line"<<str;
             } else if (str[0]=='#'){
 //                qDebug()<<"Comment ignored"<<str;
-            } else if (str.startsWith("mtllib")) {
-                // load material
-            } else {
+            } else  {
 //                qDebug()<<"Ignored line : "<<str;
             }
             str = stream.readLine();

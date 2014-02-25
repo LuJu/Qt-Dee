@@ -81,12 +81,13 @@ public:
     int findMaterialIndex(const QString& name);
     GLuint loadTexture(const QString &textureName);
 
-    void enableClientStates() const;
-    void disableClientStates() const;
-    void insertArrayValues() const;
 
 
 protected:
+    void enableClientStates() const;
+    void disableClientStates() const;
+    void insertArrayValues() const;
+    void drawTextures(const unsigned short *polygons, int number_of_polygons) const;
 private:
     void fillVertice(
                     const QVector<Point3df>& _temp_vertices,
