@@ -194,7 +194,6 @@ void Mesh::parseMaterials(const QString& material_path){
             } else if (type == "map_Kd"){
                 stream >> buffer;
                 m._texture_file=buffer;
-                qDebug()<<buffer;
                 m._texture_index=loadTexture(":/textures/"+m._texture_file);
             }
         }
@@ -203,7 +202,6 @@ void Mesh::parseMaterials(const QString& material_path){
 }
 
 int Mesh::findMaterialIndex(const QString& name){
-    qDebug()<<name;
     for (int i = 0; i < _materials.size(); ++i) {
         if (_materials.at(i)._file_name == name) return i;
     }
@@ -230,7 +228,6 @@ void Mesh::loadFromOBJ(QString filepath){
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         while (!stream.atEnd()) {
             stream >> type;
-            qDebug()<<type;
             if (type == "mtllib"){
                 qDebug()<<"mtl detected";
                 stream >> buffer;
@@ -240,52 +237,45 @@ void Mesh::loadFromOBJ(QString filepath){
                 current_mtl_index = findMaterialIndex(buffer);
                 if (current_mtl_index == -1) qWarning()<<"Impossible to find corresponding material";
                 _material_indices.insert(_polygons.size(),current_mtl_index);
-            } else if(type=="v" || type=="vn" || type=="vt") {
+            } else if(type=="v" || type=="vn") {
                 stream >> x >> y >> z;
                 if(type=="v"){
                     _temp_vertices.append(Point3df(x,y,z));
                 } else if(type=="vn") {
                     _temp_normals.append(Point3df(x,y,z));
-                } else if(type=="vt") {
-                    _temp_textures.append(Point3df(x,y,z));
                 }
+            } else if(type=="vt") {
+                stream >> x >> y;
+                _temp_textures.append(Point3df(x,y,0));
             } else if (type=="f") {
                 for (int j = 0; j < 3; ++j) {
                     stream >> buffer;
-                    qDebug()<<"buffer "<<buffer;
                     list[j] = buffer.split(QRegExp("[//| ]"),QString::SkipEmptyParts);
-                    qDebug()<< list[j][0];
-                    qDebug()<< list[j][1];
-                    qDebug()<< list[j][2];
                 }
                 switch (list[0].size()) {
                 case 1: // Only polygons
-//                    temp_polygon = Point3dus(list[1].toInt(),list[2].toInt(),list[4].toInt());
                     temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
                     _normals_activated = false;
                     _textures_activated = false;
                     fillVertice(_temp_vertices,temp_polygon);
                     break;
                 case 2: // Only polygons and normals
-//                    temp_polygon = Point3dus(list[1].toInt(),list[3].toInt(),list[5].toInt());
-//                    temp_normal_polygon = Point3dus(list[2].toInt(),list[4].toInt(),list[6].toInt());
                     temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
                     temp_normal_polygon =  Point3dus(list[0][1].toInt(),list[1][1].toInt(),list[2][1].toInt());
                     _textures_activated = false;
                     fillVertice(_temp_vertices,_temp_normals,temp_polygon,temp_normal_polygon);
                     break;
                 case 3:// Polygons and normals and textures
-
                     temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
                     temp_texture_polygon = Point3dus(list[0][1].toInt(),list[1][1].toInt(),list[2][1].toInt());
                     temp_normal_polygon =  Point3dus(list[0][2].toInt(),list[1][2].toInt(),list[2][2].toInt());
                     fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon);
                     break;
                 default:
-                    qWarning()<<"Invalid line"<<str;
+                    qWarning()<<"Invalid size";
                     break;
                 }
-            } else if (str[0]=='#'){
+            } else if (type=="#"){
 //                qDebug()<<"Comment ignored"<<str;
             } else  {
 //                qDebug()<<"Ignored line : "<<str;
@@ -316,7 +306,6 @@ void Mesh::fillVertice(
     for(int j = 0 ; j< 3; j++){
         v[j]._point=_temp_vertices[polygon[j]-1];
         v[j]._normal=_temp_normals[normal_polygon[j]-1];
-        qDebug()<<_temp_textures.size();
         v[j]._texture=_temp_textures[texture_polygon[j]-1];
 
         v[j]._color[0]=v[j]._normal[0];
