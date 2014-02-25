@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QGLWidget>
 
 #include "vertex.h"
+#include "material.h"
 
 #include "utils/curve.h"
 
@@ -76,6 +77,10 @@ public:
     Point3df calculateNormal(Point3df u, Point3df v);
     Point3df addPolygon(Vertex &a, Vertex &b, Vertex &c);
 
+    void parseMaterials(const QString& material_path);
+    int findMaterialIndex(const QString& name);
+    GLuint loadTexture(const QString &textureName);
+
 protected:
 private:
     void fillVertice(
@@ -105,6 +110,9 @@ private:
 
     bool _normals_activated;
     bool _textures_activated;
+
+    QMap<int,int>  _material_indices; // first polygon <> material index
+    QList<Material> _materials;
 };
 
 #endif // TRIANGLE_MESH3D_H
