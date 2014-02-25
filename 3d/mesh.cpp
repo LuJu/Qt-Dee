@@ -53,18 +53,53 @@ GLuint Mesh::loadTexture(const QString &textureName)
     }
 }
 
+void Mesh::enableClientStates() const{
+    glEnableClientState(GL_VERTEX_ARRAY);
+//    if(_normals_activated)
+//        glEnableClientState(GL_NORMAL_ARRAY);
+//    glEnableClientState(GL_COLOR_ARRAY);
+//    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+}
+void Mesh::disableClientStates() const{
+    glDisableClientState(GL_VERTEX_ARRAY);
+//    if(_normals_activated)
+//        glDisableClientState(GL_NORMAL_ARRAY);
+//    glDisableClientState(GL_COLOR_ARRAY);
+//    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+void Mesh::insertArrayValues() const{
+
+    const Vertex * vertices =_vertices.constData();
+    int size = sizeof(vertices[0]);
+    const Point3df * vertices_array = &(vertices[0]._point);
+    const Point3df * normal_array   = &(vertices[0]._normal);
+    const float *    color_array    = vertices[0]._color;
+    const Point3df * textures_array = &(vertices[0]._texture);
+
+        if(_normals_activated)
+            glNormalPointer(GL_FLOAT,size,normal_array);
+        glColorPointer(4,GL_FLOAT,size,color_array);
+        glVertexPointer(3,GL_FLOAT,size,vertices_array);
+        glTexCoordPointer(3,GL_FLOAT,size,textures_array);
+}
+
 
 void Mesh::render() const{
-    int size;
-    const Vertex * vertices =_vertices.constData();
     int current_polygon_index = 0;
     int next_polygon_index = 0;
     int number_of_polygons = 0;
-    Vertex current;
     Material current_material;
     int current_material_index = -1;
-    while(current_material_index<_material_indices.size()-1  /*&& current_material_index !=1*/){
-        if(current_material_index<_material_indices.size()){
+    GLuint texture;
+
+
+
+    if(current_material_index<_material_indices.size()){
+        enableClientStates();
+        insertArrayValues();
+        while(current_material_index<_material_indices.size()-1  /*&& current_material_index !=1*/){
 
 
             current_material_index++;
@@ -76,33 +111,16 @@ void Mesh::render() const{
                 next_polygon_index = -1;
             number_of_polygons = next_polygon_index - current_polygon_index;
 
-            size = sizeof(vertices[current_polygon_index]);
-            const Point3df * vertices_array = &(vertices[0]._point);
-            const Point3df * normal_array   = &(vertices[0]._normal);
-            const float *    color_array    = vertices[0]._color;
-            const Point3df * textures_array = &(vertices[0]._texture);
             const unsigned short * polygons = &(_polygons.constData()[current_polygon_index]);
 
-            GLuint texture;
 
     //        texture = _materials[0]._texture_index;
             texture = current_material._texture_index;
 //            number_of_polygons = _polygons.size();
 
-            glEnableClientState(GL_VERTEX_ARRAY);
-            if(_normals_activated)
-                glEnableClientState(GL_NORMAL_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
             glBindTexture(GL_TEXTURE_2D,texture);
             {
-                if(_normals_activated)
-                    glNormalPointer(GL_FLOAT,size,normal_array);
-                glColorPointer(4,GL_FLOAT,size,color_array);
-                glVertexPointer(3,GL_FLOAT,size,vertices_array);
-                glTexCoordPointer(3,GL_FLOAT,size,textures_array);
-
                 switch(_type){
                 case triangle :
                     glDrawElements(GL_TRIANGLES,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
@@ -117,90 +135,12 @@ void Mesh::render() const{
                     glDrawElements(GL_POINTS,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
                     break;
                 }
-
             }
-            glDisableClientState(GL_VERTEX_ARRAY);
-            if(_normals_activated)
-                glDisableClientState(GL_NORMAL_ARRAY);
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        } else {
-            qWarning()<<"attempting to render empty mesh";
         }
+        disableClientStates();
+    } else {
+        qWarning()<<"attempting to render empty mesh";
     }
-//    if(current_material_index<_material_indices.size()){
-
-//        size = sizeof(vertices[0]);
-//        const Point3df * vertices_array = &(vertices[0]._point);
-//        const Point3df * normal_array = &(vertices[0]._normal);
-//        const float * color_array = vertices[0]._color;
-//        const Point3df * textures_array = &(vertices[0]._texture);
-//        const unsigned short * polygons = _polygons.constData();
-//        GLuint texture;
-
-////        texture = _materials[0]._texture_index;
-//        texture = 2;
-//        glEnableClientState(GL_VERTEX_ARRAY);
-//        if(_normals_activated)
-//            glEnableClientState(GL_NORMAL_ARRAY);
-//        glEnableClientState(GL_COLOR_ARRAY);
-//        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//        glBindTexture(GL_TEXTURE_2D,texture);
-//        {
-//            if(_normals_activated)
-//                glNormalPointer(GL_FLOAT,size,normal_array);
-//            glColorPointer(4,GL_FLOAT,size,color_array);
-//            glVertexPointer(3,GL_FLOAT,size,vertices_array);
-//            glTexCoordPointer(3,GL_FLOAT,size,textures_array);
-
-//            switch(_type){
-//            case triangle :
-//                glDrawElements(GL_TRIANGLES,_polygons.size(),GL_UNSIGNED_SHORT,polygons);
-//                break;
-//            case lines:
-//                glDrawElements(GL_LINES,_polygons.size(),GL_UNSIGNED_SHORT,polygons);
-//                break;
-//            case line_strip:
-//                glDrawElements(GL_LINE_STRIP,_polygons.size(),GL_UNSIGNED_SHORT,polygons);
-//                break;
-//            case points:
-//                glDrawElements(GL_POINTS,_polygons.size(),GL_UNSIGNED_SHORT,polygons);
-//                break;
-//            }
-
-//        }
-//        glDisableClientState(GL_VERTEX_ARRAY);
-//        if(_normals_activated)
-//            glDisableClientState(GL_NORMAL_ARRAY);
-//        glDisableClientState(GL_COLOR_ARRAY);
-
-
-////        glPushMatrix(); {
-////            glBindTexture( GL_TEXTURE_2D, _texture );
-////            glBegin(GL_TRIANGLES); {
-////                for(int i=0; i< _polygons.size(); i++){
-////                    for(int j =0; j<3; j++){
-////                        if(GlobalConfig::is_enabled("texture")){
-////                            switch (j){
-////                            case 0:
-////                                glTexCoord2f(0.0f,0.0f);
-////                                break;
-////                            case 1:
-////                                glTexCoord2f(0.0f,0.1);
-////                                break;
-////                            case 2:
-////                                glTexCoord2f(0.1,0.0);
-////                                break;
-////                            }
-////                        }
-////                    }
-////                }
-////            } glEnd();
-////        } glPopMatrix();
-//    } else {
-////        qWarning()<<"attempting to render empty mesh";
-//    }
-
 }
 
 void Mesh::parseMaterials(const QString& material_path){

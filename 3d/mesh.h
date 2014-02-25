@@ -81,6 +81,11 @@ public:
     int findMaterialIndex(const QString& name);
     GLuint loadTexture(const QString &textureName);
 
+    void enableClientStates() const;
+    void disableClientStates() const;
+    void insertArrayValues() const;
+
+
 protected:
 private:
     void fillVertice(
