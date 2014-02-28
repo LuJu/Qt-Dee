@@ -43,8 +43,6 @@ public:
     float _d;
     int _illum;
     GLuint _texture_index;
-
-
 };
 
 

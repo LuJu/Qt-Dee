@@ -80,7 +80,8 @@ public:
     void parseMaterials(const QString& material_path);
     int findMaterialIndex(const QString& name);
     GLuint loadTexture(const QString &textureName);
-
+    bool has_materials () const {return (_materials.size()>0);}
+    bool has_vertices () const {return (_vertices.size()>0);}
 
 
 protected:
@@ -95,16 +96,9 @@ private:
                     const QVector<Point3df>& _temp_textures,
                     const Point3dus& temp_polygon,
                     const Point3dus& temp_normal_polygon,
-                    const Point3dus& temp_texture_polygon);
-    void fillVertice(
-                    const QVector<Point3df>& _temp_vertices,
-                    const QVector<Point3df>& _temp_normals,
-                    const Point3dus& temp_polygon,
-                    const Point3dus& temp_normal_polygon);
-    void fillVertice(
-                    const QVector<Point3df>& _temp_vertices,
-                    const Point3dus& temp_polygon);
-
+                    const Point3dus& temp_texture_polygon,
+                    bool insert_normal=true,
+                    bool insert_texture=true);
     void loadFromOBJ(QString filepath);
     void simpleShape();
 
@@ -116,6 +110,7 @@ private:
 
     bool _normals_activated;
     bool _textures_activated;
+    bool _colors_activated;
 
     QMap<int,int>  _material_indices; // first polygon <> material index
     QList<Material> _materials;

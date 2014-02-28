@@ -31,7 +31,8 @@ using namespace std;
 Mesh::Mesh():
     _type(triangle),
     _normals_activated(true),
-    _textures_activated(true)
+    _textures_activated(true),
+    _colors_activated(true)
 {
 }
 
@@ -57,50 +58,56 @@ void Mesh::enableClientStates() const{
     glEnableClientState(GL_VERTEX_ARRAY);
     if(_normals_activated)
         glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-        if(_textures_activated)
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    if(_colors_activated)
+        glEnableClientState(GL_COLOR_ARRAY);
+    if(_textures_activated)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 }
 void Mesh::disableClientStates() const{
     glDisableClientState(GL_VERTEX_ARRAY);
     if(_normals_activated)
         glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
+    if(_colors_activated)
+        glDisableClientState(GL_COLOR_ARRAY);
     if(_textures_activated)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void Mesh::insertArrayValues() const{
 
-    const Vertex * vertices =_vertices.constData();
-    int size = sizeof(vertices[0]);
-    const Point3df * vertices_array = &(vertices[0]._point);
-    const Point3df * normal_array   = &(vertices[0]._normal);
-    const float *    color_array    = vertices[0]._color;
-    const Point3df * textures_array = &(vertices[0]._texture);
+    if (has_vertices()){
+        const Vertex * vertices =_vertices.constData();
+        int size = sizeof(vertices[0]);
+        const Point3df * vertices_array = &(vertices[0]._point);
+        const Point3df * normal_array   = &(vertices[0]._normal);
+        const Point3df * textures_array = &(vertices[0]._texture);
+        const float *    color_array    =   vertices[0]._color;
 
-    if(_normals_activated)
-        glNormalPointer(GL_FLOAT,size,normal_array);
-    glColorPointer(4,GL_FLOAT,size,color_array);
-    glVertexPointer(3,GL_FLOAT,size,vertices_array);
-    if(_textures_activated)
-        glTexCoordPointer(3,GL_FLOAT,size,textures_array);
+        glVertexPointer(3,GL_FLOAT,size,vertices_array);
+        if(_normals_activated)
+            glNormalPointer(GL_FLOAT,size,normal_array);
+        if(_colors_activated)
+            glColorPointer(4,GL_FLOAT,size,color_array);
+        if(_textures_activated)
+            glTexCoordPointer(3,GL_FLOAT,size,textures_array);
+    } else
+        qDebug()<<"Attempting to render empty mesh";
 }
 
 void Mesh::drawTextures(const unsigned short * polygons, int number_of_polygons) const{
     switch(_type){
     case triangle :
-        glDrawElements(GL_TRIANGLES,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+        glDrawElements(GL_TRIANGLES, number_of_polygons,GL_UNSIGNED_SHORT,polygons);
         break;
     case lines:
-        glDrawElements(GL_LINES,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+        glDrawElements(GL_LINES,     number_of_polygons,GL_UNSIGNED_SHORT,polygons);
         break;
     case line_strip:
         glDrawElements(GL_LINE_STRIP,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
         break;
     case points:
-        glDrawElements(GL_POINTS,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+        glDrawElements(GL_POINTS,    number_of_polygons,GL_UNSIGNED_SHORT,polygons);
         break;
     }
 }
@@ -115,9 +122,10 @@ void Mesh::render() const{
     GLuint texture;
     const unsigned short * polygons;
 
-    if(_material_indices.size() > 0){
-        enableClientStates();
-        insertArrayValues();
+    enableClientStates();
+    insertArrayValues();
+
+    if(has_materials()){
         while(current_material_index<_material_indices.size()){
 
             current_polygon_index = _material_indices.keys()[current_material_index];
@@ -125,14 +133,14 @@ void Mesh::render() const{
                 qWarning()<<"Material not found";
             } else {
                 current_material = _materials[_material_indices.value(_material_indices.keys()[current_material_index])];
+                texture = current_material._texture_index;
+
                 if ( current_material_index < _material_indices.size()-1)
                     next_polygon_index = _material_indices.keys()[current_material_index+1];
                 else
                     next_polygon_index = _polygons.size();
 
                 number_of_polygons = next_polygon_index - current_polygon_index;
-
-                texture = current_material._texture_index;
                 polygons = &(_polygons.constData()[current_polygon_index]);
 
                 glBindTexture(GL_TEXTURE_2D,texture);
@@ -140,16 +148,14 @@ void Mesh::render() const{
             }
             current_material_index++;
         }
-        disableClientStates();
     } else {
         enableClientStates();
         insertArrayValues();
         polygons = _polygons.constData();
-        if(_vertices.size() > 0){
-            drawTextures(polygons,_polygons.size());
-        } else qDebug()<<"Attempting to render empty mesh";
-        disableClientStates();
+        drawTextures(polygons,_polygons.size());
     }
+
+    disableClientStates();
 }
 
 void Mesh::parseMaterials(const QString& material_path){
@@ -232,7 +238,7 @@ void Mesh::loadFromOBJ(QString filepath){
                 qDebug()<<"mtl detected";
                 stream >> buffer;
                 parseMaterials(buffer);
-            } else if (type == "usemtl"){
+            } else if(type=="usemtl"){
                 stream >> buffer;
                 current_mtl_index = findMaterialIndex(buffer);
                 if (current_mtl_index == -1) qWarning()<<"Impossible to find corresponding material";
@@ -247,29 +253,36 @@ void Mesh::loadFromOBJ(QString filepath){
             } else if(type=="vt") {
                 stream >> x >> y;
                 _temp_textures.append(Point3df(x,y,0));
-            } else if (type=="f") {
+            } else if(type=="f") {
                 for (int j = 0; j < 3; ++j) {
                     stream >> buffer;
                     list[j] = buffer.split(QRegExp("[//| ]"),QString::SkipEmptyParts);
                 }
                 switch (list[0].size()) {
-                case 1: // Only polygons
+                case 1: // Only vertex ( f v1 v2 v3 )
                     temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
                     _normals_activated = false;
                     _textures_activated = false;
-                    fillVertice(_temp_vertices,temp_polygon);
+                    fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon,false,false);
                     break;
-                case 2: // Only polygons and normals
-                    temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
-                    temp_normal_polygon =  Point3dus(list[0][1].toInt(),list[1][1].toInt(),list[2][1].toInt());
-                    _textures_activated = false;
-                    fillVertice(_temp_vertices,_temp_normals,temp_polygon,temp_normal_polygon);
+                case 2: // vertex and normals or vertex and textures (f v1/vt1 v2/vt2 v3/vt3 or f v1//vn1 v2//vn2 v3//vn3 )
+                    if (buffer.count('/') == 1){
+                        temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
+                        temp_texture_polygon = Point3dus(list[0][1].toInt(),list[1][1].toInt(),list[2][1].toInt());
+                        _normals_activated = false;
+                        fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon,false,true);
+                    } else if (buffer.count('/') == 2){
+                        temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
+                        temp_normal_polygon =  Point3dus(list[0][1].toInt(),list[1][1].toInt(),list[2][1].toInt());
+                        _textures_activated = false;
+                        fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon,true,false);
+                    }
                     break;
-                case 3:// Polygons and normals and textures
+                case 3:// vertex and normals and textures
                     temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
                     temp_texture_polygon = Point3dus(list[0][1].toInt(),list[1][1].toInt(),list[2][1].toInt());
                     temp_normal_polygon =  Point3dus(list[0][2].toInt(),list[1][2].toInt(),list[2][2].toInt());
-                    fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon);
+                    fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon,true,true);
                     break;
                 default:
                     qWarning()<<"Invalid size";
@@ -287,15 +300,14 @@ void Mesh::loadFromOBJ(QString filepath){
     qDebug()<<"loading time: "<<load_time.elapsed();
 }
 
-
-
 void Mesh::fillVertice(
                   const QVector<Point3df>& _temp_vertices,
                   const QVector<Point3df>& _temp_normals,
                   const QVector<Point3df>& _temp_textures,
                   const Point3dus& temp_polygon,
                   const Point3dus& temp_normal_polygon,
-                  const Point3dus& temp_texture_polygon){
+                  const Point3dus& temp_texture_polygon,
+                  bool insert_normal, bool insert_texture){
 
     int index[3];
     Vertex v[3];
@@ -305,13 +317,11 @@ void Mesh::fillVertice(
 
     for(int j = 0 ; j< 3; j++){
         v[j]._point=_temp_vertices[polygon[j]-1];
-        v[j]._normal=_temp_normals[normal_polygon[j]-1];
-        v[j]._texture=_temp_textures[texture_polygon[j]-1];
+        if (insert_normal)
+            v[j]._normal=_temp_normals[normal_polygon[j]-1];
+        if (insert_texture)
+            v[j]._texture=_temp_textures[texture_polygon[j]-1];
 
-        v[j]._color[0]=v[j]._normal[0];
-        v[j]._color[1]=v[j]._normal[1];
-        v[j]._color[2]=v[j]._normal[2];
-        v[j]._color[3]=0.5;
         index[j] = _vertices.indexOf(v[j]);
 
         if(index[j]==-1){
@@ -324,69 +334,6 @@ void Mesh::fillVertice(
     _polygons.append(index[2]);
 
 }
-
-void Mesh::fillVertice(
-        const QVector<Point3df>& _temp_vertices,
-        const QVector<Point3df>& _temp_normals,
-        const Point3dus& temp_polygon,
-        const Point3dus& temp_normal_polygon){
-
-    int index[3];
-    Vertex v[3];
-    Point3dus polygon = temp_polygon;
-    Point3dus normal_polygon = temp_normal_polygon;
-
-    for(int j = 0 ; j< 3; j++){
-        v[j]._point=_temp_vertices[polygon[j]-1];
-        v[j]._normal=_temp_normals[normal_polygon[j]-1];
-
-        v[j]._color[0]=v[j]._normal[0];
-        v[j]._color[1]=v[j]._normal[1];
-        v[j]._color[2]=v[j]._normal[2];
-        v[j]._color[3]=0.5;
-        index[j] = _vertices.indexOf(v[j]);
-
-        if(index[j]==-1){
-            _vertices.append(v[j]);
-            index[j] = _vertices.size()-1;
-        }
-    }
-    _polygons.append(index[0]);
-    _polygons.append(index[1]);
-    _polygons.append(index[2]);
-
-}
-
-void Mesh::fillVertice(
-        const QVector<Point3df>& _temp_vertices,
-        const Point3dus& temp_polygon){
-
-    int index[3];
-    Vertex v[3];
-    Point3dus polygon = temp_polygon;
-
-    for(int j = 0 ; j< 3; j++){
-        v[j]._point=_temp_vertices[polygon[j]-1];
-
-        v[j]._color[0]=v[j]._point[0];
-        v[j]._color[1]=v[j]._point[1];
-        v[j]._color[2]=v[j]._point[2];
-        v[j]._color[3]=0.5;
-        index[j] = _vertices.indexOf(v[j]);
-
-        if(index[j]==-1){
-            _vertices.append(v[j]);
-            index[j] = _vertices.size()-1;
-        }
-    }
-    _polygons.append(index[0]);
-    _polygons.append(index[1]);
-    _polygons.append(index[2]);
-
-}
-
-
-
 
 void Mesh::loadFromFile(QString filepath, int filetype){
     switch (filetype){
@@ -602,6 +549,9 @@ void Mesh::fromCapsuleShape(float length, float radius) {
     addHalfSphere(length/2,radius,true);
     addTube(length/2,radius);
     addHalfSphere(-length/2,radius,false);
+    _colors_activated =true;
+    _normals_activated = false;
+    _textures_activated = false;
 }
 
 

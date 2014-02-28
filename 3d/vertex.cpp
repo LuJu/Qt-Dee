@@ -26,10 +26,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 #include "vertex.h"
 
-Vertex::Vertex():
-    _display_colors(true),
-    _display_normal(false),
-    _display_textures(false)
+Vertex::Vertex()
 {
 }
 
