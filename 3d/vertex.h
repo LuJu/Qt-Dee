@@ -40,10 +40,34 @@ public:
     bool operator=(const Vertex &b);
     void set_color(float r, float g, float b, float a);
 
+    void colorFromPoint(){
+        int i=0;
+        _color[i++] = _point.x();
+        _color[i++] = _point.y();
+        _color[i++] = _point.z();
+        _color[i++] = 1.0f;
+    }
+    void colorFromNormal(){
+        int i=0;
+        _color[i++] = _normal.x();
+        _color[i++] = _normal.y();
+        _color[i++] = _normal.z();
+        _color[i++] = 1.0f;
+    }
+
+    void normalFromPoint(){
+        int i=0;
+        _normal[i++] = _point.x();
+        _normal[i++] = _point.y();
+        _normal[i++] = _point.z();
+    }
+
     Point3df _point;
     Point3df _normal;
     Point3df _texture;
     float _color[4];
+
+
 };
 bool operator==(const Vertex& a, const Vertex& b);
 #endif // VERTEX_H

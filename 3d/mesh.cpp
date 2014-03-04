@@ -30,9 +30,9 @@ using namespace std;
 
 Mesh::Mesh():
     _type(triangle),
-    _normals_activated(true),
-    _textures_activated(true),
-    _colors_activated(true)
+    _normals_activated(false),
+    _textures_activated(false),
+    _colors_activated(false)
 {
 }
 
@@ -234,16 +234,7 @@ void Mesh::loadFromOBJ(QString filepath){
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         while (!stream.atEnd()) {
             stream >> type;
-            if (type == "mtllib"){
-                qDebug()<<"mtl detected";
-                stream >> buffer;
-                parseMaterials(buffer);
-            } else if(type=="usemtl"){
-                stream >> buffer;
-                current_mtl_index = findMaterialIndex(buffer);
-                if (current_mtl_index == -1) qWarning()<<"Impossible to find corresponding material";
-                _material_indices.insert(_polygons.size(),current_mtl_index);
-            } else if(type=="v" || type=="vn") {
+            if(type=="v" || type=="vn") {
                 stream >> x >> y >> z;
                 if(type=="v"){
                     _temp_vertices.append(Point3df(x,y,z));
@@ -261,20 +252,16 @@ void Mesh::loadFromOBJ(QString filepath){
                 switch (list[0].size()) {
                 case 1: // Only vertex ( f v1 v2 v3 )
                     temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
-                    _normals_activated = false;
-                    _textures_activated = false;
                     fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon,false,false);
                     break;
                 case 2: // vertex and normals or vertex and textures (f v1/vt1 v2/vt2 v3/vt3 or f v1//vn1 v2//vn2 v3//vn3 )
                     if (buffer.count('/') == 1){
                         temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
                         temp_texture_polygon = Point3dus(list[0][1].toInt(),list[1][1].toInt(),list[2][1].toInt());
-                        _normals_activated = false;
                         fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon,false,true);
                     } else if (buffer.count('/') == 2){
                         temp_polygon =         Point3dus(list[0][0].toInt(),list[1][0].toInt(),list[2][0].toInt());
                         temp_normal_polygon =  Point3dus(list[0][1].toInt(),list[1][1].toInt(),list[2][1].toInt());
-                        _textures_activated = false;
                         fillVertice(_temp_vertices,_temp_normals,_temp_textures,temp_polygon,temp_normal_polygon,temp_texture_polygon,true,false);
                     }
                     break;
@@ -288,6 +275,15 @@ void Mesh::loadFromOBJ(QString filepath){
                     qWarning()<<"Invalid size";
                     break;
                 }
+            } else if (type == "mtllib"){
+                qDebug()<<"mtl detected";
+                stream >> buffer;
+                parseMaterials(buffer);
+            } else if(type=="usemtl"){
+                stream >> buffer;
+                current_mtl_index = findMaterialIndex(buffer);
+                if (current_mtl_index == -1) qWarning()<<"Impossible to find corresponding material";
+                _material_indices.insert(_polygons.size(),current_mtl_index);
             } else if (type=="#"){
 //                qDebug()<<"Comment ignored"<<str;
             } else  {
@@ -297,6 +293,8 @@ void Mesh::loadFromOBJ(QString filepath){
         }
         file.close();
     }
+    if (_temp_normals.size()>0) _normals_activated = true;
+    if (_temp_textures.size()>0) _textures_activated = true;
     qDebug()<<"loading time: "<<load_time.elapsed();
 }
 
@@ -446,10 +444,13 @@ void Mesh::addCircle(float position_y, float radius){
         Vertex v;
         v.set_color(1,1,1,1);
         v._point = Point3df(0,position_y,0);
+        v.colorFromPoint();
         _vertices.append(v);
         v._point = Point3df(radius * qSin(deg2rad(i)),position_y,radius * qCos(deg2rad(i)));
+        v.colorFromPoint();
         _vertices.append(v);
         v._point = Point3df(radius * qSin(deg2rad(i+5)),position_y,radius * qCos(deg2rad(i+5)));
+        v.colorFromPoint();
         _vertices.append(v);
         for (int j = 0; j < 3; ++j) {
             _polygons.append(_polygons.size());
@@ -467,15 +468,16 @@ Point3df Mesh::calculateNormal(Point3df u, Point3df v){
 
 Point3df Mesh::addPolygon(Vertex& a,Vertex& b,Vertex& c){
     Point3df normal = calculateNormal(a._point,b._point);
+    int size = _vertices.size();
     a._normal = normal;
     b._normal = normal;
     c._normal = normal;
     _vertices.append(a);
-    _polygons.append(_polygons.size());
     _vertices.append(b);
-    _polygons.append(_polygons.size());
     _vertices.append(c);
-    _polygons.append(_polygons.size());
+    for (int i = 0; i < 3; ++i) {
+        _polygons.append(size++);
+    }
 }
 
 void Mesh::addHalfSphere(float position_y, float radius, bool up){
@@ -485,35 +487,32 @@ void Mesh::addHalfSphere(float position_y, float radius, bool up){
         for (int i = 0; i < 360; i+=5) {
             _normals_activated = true;
             Vertex v[3];
-            v[0].set_color(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
-                           position_y +direction * qSin(deg2rad(k+5)),
-                           radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))),1 );
-            v[1].set_color(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
-                           position_y +direction * qSin(deg2rad(k+5)),
-                           radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))),1 );
-            v[2].set_color(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
-                           position_y +direction * qSin(deg2rad(k+5)),
-                           radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))),1 );
             v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
                                 position_y +direction * qSin(deg2rad(k+5)),
                                 radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))));
+            v[0].colorFromPoint();
             v[1]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k)),
                                 position_y + direction * qSin(deg2rad(k)),
                                 radius * qCos(deg2rad(i)) * qCos(deg2rad(k)));
+            v[1].colorFromPoint();
             v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
                                 position_y +direction * qSin(deg2rad(k)),
                                 radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
+            v[2].colorFromPoint();
             addPolygon(v[0],v[1],v[2]);
 
             v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
                                 position_y + direction * qSin(deg2rad(k+5)),
                                 radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
+            v[0].colorFromPoint();
             v[1]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
                                 position_y + direction * qSin(deg2rad(k)),
                                 radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
+            v[1].colorFromPoint();
             v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k+5)),
                                 position_y + direction * qSin(deg2rad(k+5)),
                                 radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k+5)));
+            v[2].colorFromPoint();
             addPolygon(v[0],v[1],v[2]);
 
         }
@@ -524,17 +523,20 @@ void Mesh::addHalfSphere(float position_y, float radius, bool up){
 void Mesh::addTube(float length, float radius){
     for (int i = 0; i < 360; i+=5) {
         Vertex v[3];
-        v[0].set_color(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)),1 );
-        v[1].set_color(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)),1 );
-        v[2].set_color(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)),1 );
         v[0]._point = Point3df(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)));
         v[1]._point = Point3df(radius * qSin(deg2rad(i+5)),-length,radius * qCos(deg2rad(i+5)));
         v[2]._point = Point3df(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i)));
+        for (int i = 0; i < 3; ++i) {
+            v[i].colorFromPoint();
+        }
         addPolygon(v[0],v[1],v[2]);
 
         v[0]._point = Point3df(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i)));
         v[1]._point = Point3df(radius * qSin(deg2rad(i+5)),length,radius * qCos(deg2rad(i+5)));
         v[2]._point = Point3df(radius * qSin(deg2rad(i+5)),-length,radius * qCos(deg2rad(i+5)));
+        for (int i = 0; i < 3; ++i) {
+            v[i].colorFromPoint();
+        }
         addPolygon(v[0],v[1],v[2]);
 
         //        _vertices.append(Vertex(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i))));
