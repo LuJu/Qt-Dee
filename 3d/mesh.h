@@ -80,9 +80,12 @@ public:
     void parseMaterials(const QString& material_path);
     int findMaterialIndex(const QString& name);
     GLuint loadTexture(const QString &textureName);
+
     bool has_materials () const {return (_materials.size()>0);}
     bool has_vertices () const {return (_vertices.size()>0);}
-
+    void set_texture_activated(bool texture_activated){ _textures_activated = texture_activated;}
+    void set_color_activated(bool color_activated) {_colors_activated = color_activated;}
+    void set_normal_activated(bool normal_activated) { _normals_activated = normal_activated;}
 
 protected:
     void enableClientStates() const;

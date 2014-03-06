@@ -364,6 +364,8 @@ void Mesh::render(const Curve& curve,int normalization, const QColor &color, int
         i++;
         iterator++;
     }
+    mesh.set_texture_activated(false);
+    mesh.set_color_activated(true);
     mesh.render();
 }
 
