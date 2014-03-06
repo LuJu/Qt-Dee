@@ -24,19 +24,19 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef TRIANGLE_MESH3D_H
-#define TRIANGLE_MESH3D_H
+#ifndef MESH_H
+#define MESH_H
 
-#include <iostream>
-#include <fstream>
+//#include <iostream>
+//#include <fstream>
 #include <QVector>
 #include <QtOpenGL>
 #include <QGLWidget>
+#include <QFile>
+#include <QTextStream>
 
 #include "vertex.h"
 #include "material.h"
-
-#include "utils/curve.h"
 
 class Mesh
 {
@@ -52,37 +52,31 @@ public:
     };
 
     Mesh();
+
+    //! Renders the mesh using the opengl system
     void render() const;
-
     void loadFromFile(QString filepath, int filetype = obj);
-    GLuint get_texture() const {return _texture;}
-    void set_texture(GLuint texture){_texture = texture;}
+    //! Adds a polygon to the list, with the vertices given in parameter
+    /*!
+        Adds a polygon to the list, with the vertices given in parameter.\n
+        The vertices are added to the vertices list, so if you want to define a polygon with already defined vertices, refer to ...
+        \n Status  1 : not implemented
+        \param a,b,c : the vertices defining the polygon to add. \n
+    */
+    void addPolygon(const Vertex &a, const Vertex &b, const Vertex &c);
+    //! adds a polygon with indices of the vertices in parameter
+    void addPolygon(int index_a, int index_b, int index_c);
 
-    polygontype get_type() const {return _type;}
-    void set_type(const polygontype& type){_type = type;}
+
+    Point3df calculateNormal(Point3df u, Point3df v, Point3df w);
+
 
     QVector<unsigned short>& get_polygons() {return _polygons;}
     QVector<Vertex>& get_vertices() {return _vertices;}
-
-    static void render(const Curve& curve, int normalization, const QColor& color, int thickness, bool points=false);
-
-    static void drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression);
-    GLuint _texture;
-
-    void fromCapsuleShape(float length, float radius);
-    void addCircle(float position_y, float radius);
-    void addHalfSphere(float position_y, float radius, bool up);
-    void addTube(float length, float radius);
-
-    Point3df calculateNormal(Point3df u, Point3df v);
-    Point3df addPolygon(Vertex &a, Vertex &b, Vertex &c);
-
-    void parseMaterials(const QString& material_path);
-    int findMaterialIndex(const QString& name);
-    GLuint loadTexture(const QString &textureName);
-
     bool has_materials () const {return (_materials.size()>0);}
     bool has_vertices () const {return (_vertices.size()>0);}
+    polygontype get_type() const {return _type;}
+    void set_type(const polygontype& type){_type = type;}
     void set_texture_activated(bool texture_activated){ _textures_activated = texture_activated;}
     void set_color_activated(bool color_activated) {_colors_activated = color_activated;}
     void set_normal_activated(bool normal_activated) { _normals_activated = normal_activated;}
@@ -91,7 +85,10 @@ protected:
     void enableClientStates() const;
     void disableClientStates() const;
     void insertArrayValues() const;
-    void drawTextures(const unsigned short *polygons, int number_of_polygons) const;
+    void drawElements(const unsigned short *polygons, int number_of_polygons) const;
+    GLuint loadTexture(const QString &textureName);
+    void parseMaterials(const QString& material_path);
+    int findMaterialIndex(const QString& name);
 private:
     void fillVertice(
                     const QVector<Point3df>& _temp_vertices,
@@ -102,8 +99,7 @@ private:
                     const Point3dus& temp_texture_polygon,
                     bool insert_normal=true,
                     bool insert_texture=true);
-    void loadFromOBJ(QString filepath);
-    void simpleShape();
+    void parseOBJ(QString filepath);
 
     QVector<unsigned short> _polygons;
     QVector<Vertex> _vertices;
@@ -119,4 +115,4 @@ private:
     QList<Material> _materials;
 };
 
-#endif // TRIANGLE_MESH3D_H
+#endif // MESH_H

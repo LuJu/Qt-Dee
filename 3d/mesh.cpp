@@ -26,7 +26,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 #include "mesh.h"
 
-using namespace std;
+//using namespace std;
 
 Mesh::Mesh():
     _type(triangle),
@@ -55,6 +55,7 @@ GLuint Mesh::loadTexture(const QString &textureName)
 }
 
 void Mesh::enableClientStates() const{
+
     glEnableClientState(GL_VERTEX_ARRAY);
     if(_normals_activated)
         glEnableClientState(GL_NORMAL_ARRAY);
@@ -64,6 +65,7 @@ void Mesh::enableClientStates() const{
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 }
+
 void Mesh::disableClientStates() const{
     glDisableClientState(GL_VERTEX_ARRAY);
     if(_normals_activated)
@@ -95,7 +97,7 @@ void Mesh::insertArrayValues() const{
         qDebug()<<"Attempting to render empty mesh";
 }
 
-void Mesh::drawTextures(const unsigned short * polygons, int number_of_polygons) const{
+void Mesh::drawElements(const unsigned short * polygons, int number_of_polygons) const{
     switch(_type){
     case triangle :
         glDrawElements(GL_TRIANGLES, number_of_polygons,GL_UNSIGNED_SHORT,polygons);
@@ -111,7 +113,6 @@ void Mesh::drawTextures(const unsigned short * polygons, int number_of_polygons)
         break;
     }
 }
-
 
 void Mesh::render() const{
     int current_polygon_index = 0;
@@ -144,7 +145,7 @@ void Mesh::render() const{
                 polygons = &(_polygons.constData()[current_polygon_index]);
 
                 glBindTexture(GL_TEXTURE_2D,texture);
-                drawTextures(polygons,number_of_polygons);
+                drawElements(polygons,number_of_polygons);
             }
             current_material_index++;
         }
@@ -152,69 +153,24 @@ void Mesh::render() const{
         enableClientStates();
         insertArrayValues();
         polygons = _polygons.constData();
-        drawTextures(polygons,_polygons.size());
+        drawElements(polygons,_polygons.size());
     }
 
     disableClientStates();
 }
 
-void Mesh::parseMaterials(const QString& material_path){
-    QFile file(":/materials/"+material_path);
-    QTextStream stream(&file);
-    Material m;
-    float value,x,y,z;
-    QString buffer;
-    bool first = true;
-    QString type;
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        while (!stream.atEnd()) {
-            stream >> type;
-            if (type == "#") ; // comment
-            else if (type == "newmtl"){
-                if (!first)
-                    _materials.append(m);
-                else first = false;
-                m=Material();
-                stream >> m._file_name;
-            } else if (type == "Ns"){
-                stream >> value;
-                m._ns=value;
-            } else if (type == "Ka"){
-                stream >> x >> y >> z;
-                m._ka=Point3df(x,y,z);
-            } else if (type == "Kd"){
-                stream >> x >> y >> z;
-                m._kd=Point3df(x,y,z);
-            } else if (type == "Ks"){
-                stream >> x >> y >> z;
-                m._ks=Point3df(x,y,z);
-            } else if (type == "Ni"){
-                stream >> value;
-                m._ni=value;
-            } else if (type == "d"){
-                stream >> value;
-                m._d=value;
-            } else if (type == "illum"){
-                stream >> value;
-                m._illum=value;
-            } else if (type == "map_Kd"){
-                stream >> buffer;
-                m._texture_file=buffer;
-                m._texture_index=loadTexture(":/textures/"+m._texture_file);
-            }
-        }
-        _materials.append(m);
+
+void Mesh::loadFromFile(QString filepath, int filetype){
+    switch (filetype){
+    case obj:
+        parseOBJ(filepath);
+        break;
+    default:
+        break;
     }
 }
 
-int Mesh::findMaterialIndex(const QString& name){
-    for (int i = 0; i < _materials.size(); ++i) {
-        if (_materials.at(i)._file_name == name) return i;
-    }
-    return -1;
-}
-
-void Mesh::loadFromOBJ(QString filepath){
+void Mesh::parseOBJ(QString filepath){
 
     QFile file(filepath);
     QTextStream stream(&file);
@@ -307,6 +263,7 @@ void Mesh::fillVertice(
                   const Point3dus& temp_texture_polygon,
                   bool insert_normal, bool insert_texture){
 
+
     int index[3];
     Vertex v[3];
     Point3dus polygon = temp_polygon;
@@ -333,134 +290,63 @@ void Mesh::fillVertice(
 
 }
 
-void Mesh::loadFromFile(QString filepath, int filetype){
-    switch (filetype){
-    case obj:
-        loadFromOBJ(filepath);
-        break;
-    default:
-        break;
-    }
-}
-
-void Mesh::render(const Curve& curve,int normalization, const QColor &color, int thickness, bool points){
-    Mesh mesh;
-    mesh.set_type(Mesh::line_strip);
-    if(points){
-
-        mesh.set_type(Mesh::points);
-        glPointSize((GLfloat)thickness);
-    }
-    QMap<float,float>::const_iterator iterator = curve.begin();
-    int i = 0;
-    glLineWidth((GLfloat)thickness);
-    while (iterator != curve.end()){
-        Vertex v(iterator.key(),iterator.value()/normalization,0);
-        v._color[0]=color.red();
-        v._color[1]=color.green();
-        v._color[2]=color.blue();
-        mesh.get_vertices().append(v);
-        mesh.get_polygons().append(i);
-        i++;
-        iterator++;
-    }
-    mesh.set_texture_activated(false);
-    mesh.set_color_activated(true);
-    mesh.render();
-}
-
-void Mesh::drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression){
-    Mesh mesh;
-    float x1=bounds.topLeft().x();
-    float y1=bounds.topLeft().y();
-    float x2=bounds.bottomRight().x();
-    float y2=bounds.bottomRight().y();
-    float xmin = qMin(x1,x2);
-    float xmax = qMax(x1,x2);
-    float ymin = qMin(y1,y2);
-    float ymax = qMax(y1,y2);
-    mesh.set_type(Mesh::lines);
-    int i = 0;
-    glLineWidth((GLfloat)thickness);
-    while (i < xmax) {
-        Vertex v1(i,y1,0);
-        Vertex v2(i,y2,0);
-        
-        v1.set_color((float)color.red()/255,(float)color.green()/255,(float)color.blue()/255,(float)color.alpha()/255);
-        v2.set_color((float)color.red()/255,(float)color.green()/255,(float)color.blue()/255,(float)color.alpha()/255);
-
-        mesh.get_vertices().append(v1);
-        mesh.get_polygons().append(mesh.get_vertices().size()-1);
-        mesh.get_vertices().append(v2);
-        mesh.get_polygons().append(mesh.get_vertices().size()-1);
-        i+= horizontal_progression;
-    }
-    i=0;
-    while (i > xmin) {
-        Vertex v1(i,y1,0);
-        Vertex v2(i,y2,0);
-
-        v1.set_color((float)color.red()/255,(float)color.green()/255,(float)color.blue()/255,(float)color.alpha()/255);
-        v2.set_color((float)color.red()/255,(float)color.green()/255,(float)color.blue()/255,(float)color.alpha()/255);
-
-        mesh.get_vertices().append(v1);
-        mesh.get_polygons().append(mesh.get_vertices().size()-1);
-        mesh.get_vertices().append(v2);
-        mesh.get_polygons().append(mesh.get_vertices().size()-1);
-        i-= vertical_progression;
-    }
-    i = 0;
-    while (i < ymax){
-        Vertex v1(x1,i,0);
-        Vertex v2(x2,i,0);
-
-        v1.set_color((float)color.red()/255,(float)color.green()/255,(float)color.blue()/255,(float)color.alpha()/255);
-        v2.set_color((float)color.red()/255,(float)color.green()/255,(float)color.blue()/255,(float)color.alpha()/255);
-
-        mesh.get_vertices().append(v1);
-        mesh.get_polygons().append(mesh.get_vertices().size()-1);
-        mesh.get_vertices().append(v2);
-        mesh.get_polygons().append(mesh.get_vertices().size()-1);
-        i+=vertical_progression;
-    }
-    i = 0;
-    while (i > ymin){
-        Vertex v1(x1,i,0);
-        Vertex v2(x2,i,0);
-
-        v1.set_color((float)color.red()/255,(float)color.green()/255,(float)color.blue()/255,(float)color.alpha()/255);
-        v2.set_color((float)color.red()/255,(float)color.green()/255,(float)color.blue()/255,(float)color.alpha()/255);
-
-        mesh.get_vertices().append(v1);
-        mesh.get_polygons().append(mesh.get_vertices().size()-1);
-        mesh.get_vertices().append(v2);
-        mesh.get_polygons().append(mesh.get_vertices().size()-1);
-        i-=vertical_progression;
-    }
-
-    mesh.render();
-}
-
-void Mesh::addCircle(float position_y, float radius){
-    for (int i = 0; i < 360; i+=5) {
-        Vertex v;
-        v.set_color(1,1,1,1);
-        v._point = Point3df(0,position_y,0);
-        v.colorFromPoint();
-        _vertices.append(v);
-        v._point = Point3df(radius * qSin(deg2rad(i)),position_y,radius * qCos(deg2rad(i)));
-        v.colorFromPoint();
-        _vertices.append(v);
-        v._point = Point3df(radius * qSin(deg2rad(i+5)),position_y,radius * qCos(deg2rad(i+5)));
-        v.colorFromPoint();
-        _vertices.append(v);
-        for (int j = 0; j < 3; ++j) {
-            _polygons.append(_polygons.size());
+void Mesh::parseMaterials(const QString& material_path){
+    QFile file(":/materials/"+material_path);
+    QTextStream stream(&file);
+    Material m;
+    float value,x,y,z;
+    QString buffer;
+    bool first = true;
+    QString type;
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        while (!stream.atEnd()) {
+            stream >> type;
+            if (type == "#") ; // comment
+            else if (type == "newmtl"){
+                if (!first)
+                    _materials.append(m);
+                else first = false;
+                m=Material();
+                stream >> m._file_name;
+            } else if (type == "Ns"){
+                stream >> value;
+                m._ns=value;
+            } else if (type == "Ka"){
+                stream >> x >> y >> z;
+                m._ka=Point3df(x,y,z);
+            } else if (type == "Kd"){
+                stream >> x >> y >> z;
+                m._kd=Point3df(x,y,z);
+            } else if (type == "Ks"){
+                stream >> x >> y >> z;
+                m._ks=Point3df(x,y,z);
+            } else if (type == "Ni"){
+                stream >> value;
+                m._ni=value;
+            } else if (type == "d"){
+                stream >> value;
+                m._d=value;
+            } else if (type == "illum"){
+                stream >> value;
+                m._illum=value;
+            } else if (type == "map_Kd"){
+                stream >> buffer;
+                m._texture_file=buffer;
+                m._texture_index=loadTexture(":/textures/"+m._texture_file);
+            }
         }
+        _materials.append(m);
     }
 }
 
-Point3df Mesh::calculateNormal(Point3df u, Point3df v){
+int Mesh::findMaterialIndex(const QString& name){
+    for (int i = 0; i < _materials.size(); ++i) {
+        if (_materials.at(i)._file_name == name) return i;
+    }
+    return -1;
+}
+
+Point3df Mesh::calculateNormal(Point3df u, Point3df v, Point3df w){
     Point3df normal;
     normal.x((u.y() * v.z()) - (u.z() * v.y()));
     normal.y((u.z() * v.x()) - (u.x() * v.z()));
@@ -468,12 +354,8 @@ Point3df Mesh::calculateNormal(Point3df u, Point3df v){
     return normal;
 }
 
-Point3df Mesh::addPolygon(Vertex& a,Vertex& b,Vertex& c){
-    Point3df normal = calculateNormal(a._point,b._point);
+void Mesh::addPolygon(const Vertex& a,const Vertex& b,const Vertex& c){
     int size = _vertices.size();
-    a._normal = normal;
-    b._normal = normal;
-    c._normal = normal;
     _vertices.append(a);
     _vertices.append(b);
     _vertices.append(c);
@@ -482,80 +364,10 @@ Point3df Mesh::addPolygon(Vertex& a,Vertex& b,Vertex& c){
     }
 }
 
-void Mesh::addHalfSphere(float position_y, float radius, bool up){
-    float k=0.0;
-    float direction = up?radius:-radius;
-    while (k<90){
-        for (int i = 0; i < 360; i+=5) {
-            _normals_activated = true;
-            Vertex v[3];
-            v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad((k+5))),
-                                position_y +direction * qSin(deg2rad(k+5)),
-                                radius * qCos(deg2rad(i)) * qCos(deg2rad((k+5))));
-            v[0].colorFromPoint();
-            v[1]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k)),
-                                position_y + direction * qSin(deg2rad(k)),
-                                radius * qCos(deg2rad(i)) * qCos(deg2rad(k)));
-            v[1].colorFromPoint();
-            v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
-                                position_y +direction * qSin(deg2rad(k)),
-                                radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
-            v[2].colorFromPoint();
-            addPolygon(v[0],v[1],v[2]);
-
-            v[0]._point = Point3df(radius * qSin(deg2rad(i)) * qCos(deg2rad(k+5)),
-                                position_y + direction * qSin(deg2rad(k+5)),
-                                radius * qCos(deg2rad(i)) * qCos(deg2rad(k+5)));
-            v[0].colorFromPoint();
-            v[1]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k)),
-                                position_y + direction * qSin(deg2rad(k)),
-                                radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k)));
-            v[1].colorFromPoint();
-            v[2]._point = Point3df(radius * qSin(deg2rad(i+5)) * qCos(deg2rad(k+5)),
-                                position_y + direction * qSin(deg2rad(k+5)),
-                                radius * qCos(deg2rad(i+5)) * qCos(deg2rad(k+5)));
-            v[2].colorFromPoint();
-            addPolygon(v[0],v[1],v[2]);
-
-        }
-        k+=5;
-    }
-}
-
-void Mesh::addTube(float length, float radius){
-    for (int i = 0; i < 360; i+=5) {
-        Vertex v[3];
-        v[0]._point = Point3df(radius * qSin(deg2rad(i)),-length,radius * qCos(deg2rad(i)));
-        v[1]._point = Point3df(radius * qSin(deg2rad(i+5)),-length,radius * qCos(deg2rad(i+5)));
-        v[2]._point = Point3df(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i)));
-        for (int i = 0; i < 3; ++i) {
-            v[i].colorFromPoint();
-        }
-        addPolygon(v[0],v[1],v[2]);
-
-        v[0]._point = Point3df(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i)));
-        v[1]._point = Point3df(radius * qSin(deg2rad(i+5)),length,radius * qCos(deg2rad(i+5)));
-        v[2]._point = Point3df(radius * qSin(deg2rad(i+5)),-length,radius * qCos(deg2rad(i+5)));
-        for (int i = 0; i < 3; ++i) {
-            v[i].colorFromPoint();
-        }
-        addPolygon(v[0],v[1],v[2]);
-
-        //        _vertices.append(Vertex(radius * qSin(deg2rad(i)),length,radius * qCos(deg2rad(i))));
-        //        _vertices.append(Vertex(radius * qSin(deg2rad(i+1)),length,radius * qCos(deg2rad(i+1))));
-//        for (int j = 0; j < 6; ++j) {
-//            _polygons.append(_polygons.size());
-//        }
-    }
-}
-
-void Mesh::fromCapsuleShape(float length, float radius) {
-    addHalfSphere(length/2,radius,true);
-    addTube(length/2,radius);
-    addHalfSphere(-length/2,radius,false);
-    _colors_activated =true;
-    _normals_activated = false;
-    _textures_activated = false;
+void Mesh::addPolygon(int index_a, int index_b, int index_c){
+        _polygons.append(index_a);
+        _polygons.append(index_b);
+        _polygons.append(index_c);
 }
 
 
