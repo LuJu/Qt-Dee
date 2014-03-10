@@ -43,5 +43,5 @@ double potential_energy(double mass, double gravitation, double height){
 }
 
 double absolute_value(double value){
-    return (value >= 0)? value : -value;
+    return (value >= 0)?value : -value;
 }

@@ -29,14 +29,28 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "utils/geometry.h"
 #include "utils/typedefinitions.h"
+#include <QQuaternion>
 
 class Transform
 {
 public:
     Transform();
 
-    const Point3df& get_rotate() const {return _rotate;}
-    void set_rotate(Point3df rotate){_rotate = rotate;}
+    Point3df get_rotate() const {
+                    float m_x = _rotate.x();
+                    float m_y = _rotate.y();
+                    float m_z = _rotate.z();
+                    float m_w = _rotate.scalar();
+                    float rotx = atan2(2*((m_w * m_x) + (m_y * m_z)), 1 - (2 * ((m_x* m_x) + (m_y * m_y))));
+                    float roty = asin(2 * ((m_w * m_y) - (m_z * m_x)));
+                    float rotz = atan2(2 * ((m_w * m_z) + (m_x * m_y)), 1 - (2 * ((m_y * m_y) + (m_z * m_z))));
+                    return Point3df(rad2deg(rotx),rad2deg(roty),rad2deg(rotz));
+                }
+
+    QQuaternion get_rotate() const {
+        return _rotate;
+    }
+//    void set_rotate(Point3df rotate){_rotate = rotate;}
     const Point3df& get_position() const {return _position;}
     void set_position(Point3df position){_position = position;}
     const Point3df& get_scale() const {return _scale;}
@@ -44,7 +58,7 @@ public:
     void set_scale(float scale){_scale = Point3df(scale,scale,scale);}
 
 private :
-    Point3df _rotate;
+    QQuaternion _rotate;
     Point3df _position;
     Point3df _scale;
 };

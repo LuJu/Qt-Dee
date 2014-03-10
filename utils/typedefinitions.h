@@ -28,7 +28,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef TYPEDEFINITIONS_H
 #define TYPEDEFINITIONS_H
 
+#include <QQuaternion>
+
 #include "utils/geometry.h"
+#include "utils/maths.h"
 
 typedef Point3d<float> Point3df ;
 typedef Point3d<double> Point3dd ;
