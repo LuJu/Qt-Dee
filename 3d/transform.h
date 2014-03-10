@@ -36,7 +36,7 @@ class Transform
 public:
     Transform();
 
-    Point3df get_rotate() const {
+    Point3df get_rotate_euler() const {
                     float m_x = _rotate.x();
                     float m_y = _rotate.y();
                     float m_z = _rotate.z();

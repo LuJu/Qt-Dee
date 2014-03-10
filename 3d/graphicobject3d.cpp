@@ -49,9 +49,9 @@ void GraphicObject3D::computeTransformations(){
     _matrix.setToIdentity();
     _matrix.translate(_transform.get_position().x(),_transform.get_position().y(),_transform.get_position().z());
     _matrix.scale(_transform.get_scale().x(),_transform.get_scale().y(),_transform.get_scale().z());
-    _matrix.rotate(_transform.get_rotate().x(),1,0,0);
-    _matrix.rotate(_transform.get_rotate().y(),0,1,0);
-    _matrix.rotate(_transform.get_rotate().z(),0,0,1);
+    _matrix.rotate(_transform.get_rotate_euler().x(),1,0,0);
+    _matrix.rotate(_transform.get_rotate_euler().y(),0,1,0);
+    _matrix.rotate(_transform.get_rotate_euler().z(),0,0,1);
 }
 
 void GraphicObject3D::resetPosition(){
