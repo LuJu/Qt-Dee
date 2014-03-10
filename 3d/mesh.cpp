@@ -93,8 +93,9 @@ void Mesh::insertArrayValues() const{
             glColorPointer(4,GL_FLOAT,size,color_array);
         if(_textures_activated)
             glTexCoordPointer(3,GL_FLOAT,size,textures_array);
-    } else
-        qDebug()<<"Attempting to render empty mesh";
+    } else {
+//        qDebug()<<"Attempting to render empty mesh";
+    }
 }
 
 void Mesh::drawElements(const unsigned short * polygons, int number_of_polygons) const{
@@ -232,8 +233,8 @@ void Mesh::parseOBJ(QString filepath){
                     break;
                 }
             } else if (type == "mtllib"){
-                qDebug()<<"mtl detected";
                 stream >> buffer;
+                qDebug()<<"mtl detected : "<<buffer;
                 parseMaterials(buffer);
             } else if(type=="usemtl"){
                 stream >> buffer;
