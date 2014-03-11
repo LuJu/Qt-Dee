@@ -70,6 +70,16 @@ public:
 
     Point3df calculateNormal(Point3df u, Point3df v, Point3df w);
 
+    void clear(){
+        _polygons.clear();
+        _vertices.clear();
+        _materials.clear();
+        _material_indices.clear();
+        _normals_activated = false;
+        _textures_activated = false;
+        _colors_activated = false;
+        _type = triangle;
+    }
 
     QVector<unsigned short>& get_polygons() {return _polygons;}
     QVector<Vertex>& get_vertices() {return _vertices;}
@@ -99,20 +109,22 @@ private:
                     const Point3dus& temp_texture_polygon,
                     bool insert_normal=true,
                     bool insert_texture=true);
+
+    Mesh(Mesh& triangle);
+
     void parseOBJ(QString filepath);
 
     QVector<unsigned short> _polygons;
     QVector<Vertex> _vertices;
 
     polygontype _type;
-    Mesh(Mesh& triangle);
+    QMap<int,int>  _material_indices; // first polygon <> material index
+    QList<Material> _materials;
 
     bool _normals_activated;
     bool _textures_activated;
     bool _colors_activated;
 
-    QMap<int,int>  _material_indices; // first polygon <> material index
-    QList<Material> _materials;
 };
 
 #endif // MESH_H
