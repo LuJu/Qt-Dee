@@ -11,5 +11,5 @@ Here are some features provided by the library :
 - Loading .obj files in program and rendering them
 - Using Bezier curves
 - Some utility classes like triplet templates, parsers, etc
-
-It has been created by a ETS student Lucas Juliéron (https://github.com/LuJu) 
+ 
+It has been created by a ETS student Lucas Juliéron ( https://github.com/LuJu ) 
