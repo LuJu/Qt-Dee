@@ -33,12 +33,22 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QFile>
 
 //! class offering methods to parse a csv file
+/*!
+        This class is used to simply parse and use CSV files. Since CSV have a quite simple structure, this class provides simple access it. \n
+        After you call the parsefile function, you can access each line of the file just like you would do with a list, and each element using the element access method on the line
+    */
 class CSVParser : public QList<QStringList>
 {
 public:
     explicit CSVParser();
-    void parseFile(QString path, QString split);
-    void parseFile(QString path);
+    //! Parses the file given in parameter
+    /*!
+        \param  path : the path of the CSV file
+        \param  split : the separation character betwenn elements
+        \return false if the parsing has failed
+    */
+    bool parseFile(QString path, QString split);
+    bool parseFile(QString path);
 };
 
 #endif // CSVPARSER_H

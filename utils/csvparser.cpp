@@ -30,7 +30,7 @@ CSVParser::CSVParser()
 {
 }
 
-void CSVParser::parseFile(QString path,QString split){
+bool CSVParser::parseFile(QString path,QString split){
     QFile file(path);
     QString data;
     QStringList datas;
@@ -41,9 +41,9 @@ void CSVParser::parseFile(QString path,QString split){
             append(datas[i].split(split,QString::SkipEmptyParts));
         }
         file.close();
-    }
+    } else return false ;
 }
 
-void CSVParser::parseFile(QString path){
-    parseFile(path,",");
+bool CSVParser::parseFile(QString path){
+    return parseFile(path,",");
 }

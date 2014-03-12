@@ -30,6 +30,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "utils/geometry.h"
 #include "utils/typedefinitions.h"
 
+//! Vertex class made to be used with opengl
+/*!
+        Represents a vertex defined by its coordinates, its color, its normal, and the coordinates of the texture
+    */
 class Vertex
 {
 public:
@@ -66,8 +70,6 @@ public:
     Point3df _normal;
     Point3df _texture;
     float _color[4];
-
-
 };
 bool operator==(const Vertex& a, const Vertex& b);
 #endif // VERTEX_H

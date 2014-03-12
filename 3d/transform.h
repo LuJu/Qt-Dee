@@ -36,16 +36,16 @@ class Transform
 public:
     Transform();
 
-    Point3df get_rotate_euler() const {
-                    float m_x = _rotate.x();
-                    float m_y = _rotate.y();
-                    float m_z = _rotate.z();
-                    float m_w = _rotate.scalar();
-                    float rotx = atan2(2*((m_w * m_x) + (m_y * m_z)), 1 - (2 * ((m_x* m_x) + (m_y * m_y))));
-                    float roty = asin(2 * ((m_w * m_y) - (m_z * m_x)));
-                    float rotz = atan2(2 * ((m_w * m_z) + (m_x * m_y)), 1 - (2 * ((m_y * m_y) + (m_z * m_z))));
-                    return Point3df(rad2deg(rotx),rad2deg(roty),rad2deg(rotz));
-                }
+//    Point3df get_rotate_euler() const {
+//                    float m_x = _rotate.x();
+//                    float m_y = _rotate.y();
+//                    float m_z = _rotate.z();
+//                    float m_w = _rotate.scalar();
+//                    float rotx = atan2(2*((m_w * m_x) + (m_y * m_z)), 1 - (2 * ((m_x* m_x) + (m_y * m_y))));
+//                    float roty = asin(2 * ((m_w * m_y) - (m_z * m_x)));
+//                    float rotz = atan2(2 * ((m_w * m_z) + (m_x * m_y)), 1 - (2 * ((m_y * m_y) + (m_z * m_z))));
+//                    return Point3df(rad2deg(rotx),rad2deg(roty),rad2deg(rotz));
+//                }
 
     QQuaternion get_rotate() const {
         return _rotate;
