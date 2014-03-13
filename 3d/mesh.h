@@ -40,6 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 class Mesh
 {
+    friend class OBJLoader;
 public:
     enum filetype{
         obj
@@ -55,7 +56,7 @@ public:
 
     //! Renders the mesh using the opengl system
     void render() const;
-    void loadFromFile(QString filepath, int filetype = obj);
+//    void loadFromFile(QString filepath, int filetype = obj);
     //! Adds a polygon to the list, with the vertices given in parameter
     /*!
         Adds a polygon to the list, with the vertices given in parameter.\n
@@ -97,8 +98,8 @@ protected:
     void insertArrayValues() const;
     void drawElements(const unsigned short *polygons, int number_of_polygons) const;
     GLuint loadTexture(const QString &textureName);
-    void parseMaterials(const QString& material_path);
-    int findMaterialIndex(const QString& name);
+//    void parseMaterials(const QString& material_path);
+//    int findMaterialIndex(const QString& name);
 private:
     void fillVertice(
                     const QVector<Point3df>& _temp_vertices,
@@ -112,7 +113,7 @@ private:
 
     Mesh(Mesh& triangle);
 
-    void parseOBJ(QString filepath);
+//    void parseOBJ(QString filepath);
 
     QVector<unsigned short> _polygons;
     QVector<Vertex> _vertices;
@@ -126,5 +127,6 @@ private:
     bool _colors_activated;
 
 };
+typedef QSharedPointer<Mesh> MeshPointer;
 
 #endif // MESH_H

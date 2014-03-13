@@ -35,22 +35,8 @@ class Transform
 {
 public:
     Transform();
-
-//    Point3df get_rotate_euler() const {
-//                    float m_x = _rotate.x();
-//                    float m_y = _rotate.y();
-//                    float m_z = _rotate.z();
-//                    float m_w = _rotate.scalar();
-//                    float rotx = atan2(2*((m_w * m_x) + (m_y * m_z)), 1 - (2 * ((m_x* m_x) + (m_y * m_y))));
-//                    float roty = asin(2 * ((m_w * m_y) - (m_z * m_x)));
-//                    float rotz = atan2(2 * ((m_w * m_z) + (m_x * m_y)), 1 - (2 * ((m_y * m_y) + (m_z * m_z))));
-//                    return Point3df(rad2deg(rotx),rad2deg(roty),rad2deg(rotz));
-//                }
-
-    QQuaternion get_rotate() const {
-        return _rotate;
-    }
-//    void set_rotate(Point3df rotate){_rotate = rotate;}
+    const QQuaternion& get_rotate() const { return _rotate; }
+    void set_rotate(const QQuaternion& rotate){_rotate = rotate;}
     const Point3df& get_position() const {return _position;}
     void set_position(Point3df position){_position = position;}
     const Point3df& get_scale() const {return _scale;}

@@ -56,8 +56,8 @@ public:
     bool is_moving() const {return _moving;}
     void set_moving(bool moving){_moving = moving;}
 
-    Mesh * get_mesh() {return _mesh;}
-    void set_mesh(Mesh * mesh){_mesh = mesh;}
+    MeshPointer get_mesh() {return _mesh;}
+    void set_mesh(MeshPointer mesh){_mesh = mesh;}
 
     int get_type() const {return _type;}
     void set_type(int type){_type = type;}
@@ -69,7 +69,7 @@ public:
 protected:
     void computeTransformations();
     int _type;
-    Mesh * _mesh;
+    MeshPointer _mesh;
     bool _visible;
     bool _moving;
     Transform _transform;
