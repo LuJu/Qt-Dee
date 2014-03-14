@@ -59,21 +59,21 @@ public:
     MeshPointer get_mesh() {return _mesh;}
     void set_mesh(MeshPointer mesh){_mesh = mesh;}
 
-    int get_type() const {return _type;}
-    void set_type(int type){_type = type;}
+//    int get_type() const {return _type;}
+//    void set_type(int type){_type = type;}
 
     Transform& get_transform() {return _transform;}
     void set_transform(Transform& transform){_transform = transform;}
     QMatrix4x4 get_matrix();
 
 protected:
-    void computeTransformations();
-    int _type;
+//    void computeTransformations();
+//    int _type;
     MeshPointer _mesh;
     bool _visible;
     bool _moving;
     Transform _transform;
-    QMatrix4x4 _matrix;
+//    QMatrix4x4 _matrix;
 private:
 };
 

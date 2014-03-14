@@ -47,3 +47,4 @@ bool CSVParser::parseFile(QString path,QString split){
 bool CSVParser::parseFile(QString path){
     return parseFile(path,",");
 }
+

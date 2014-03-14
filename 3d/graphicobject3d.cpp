@@ -36,8 +36,8 @@ GraphicObject3D::~GraphicObject3D(){
 }
 
 QMatrix4x4 GraphicObject3D::get_matrix(){
-    computeTransformations();
-    return _matrix;
+//    computeTransformations();
+    return _transform.get_matrix();
 }
 
 void GraphicObject3D::render(){
@@ -45,12 +45,12 @@ void GraphicObject3D::render(){
     else _mesh->render();
 }
 
-void GraphicObject3D::computeTransformations(){
-    _matrix.setToIdentity();
-    _matrix.translate(_transform.get_position().x(),_transform.get_position().y(),_transform.get_position().z());
-    _matrix.scale(_transform.get_scale().x(),_transform.get_scale().y(),_transform.get_scale().z());
-    _matrix.rotate(_transform.get_rotate());
-}
+//void GraphicObject3D::computeTransformations(){
+//    _matrix.setToIdentity();
+//    _matrix.translate(_transform.get_position().x(),_transform.get_position().y(),_transform.get_position().z());
+//    _matrix.scale(_transform.get_scale().x(),_transform.get_scale().y(),_transform.get_scale().z());
+//    _matrix.rotate(_transform.get_rotate());
+//}
 
 void GraphicObject3D::resetPosition(){
     _transform.set_position(Point3df(0.0f,0.0f,0.0f));

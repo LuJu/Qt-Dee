@@ -30,6 +30,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "utils/geometry.h"
 #include "utils/typedefinitions.h"
 #include <QQuaternion>
+#include <QMatrix4x4>
 
 class Transform
 {
@@ -42,11 +43,19 @@ public:
     const Point3df& get_scale() const {return _scale;}
     void set_scale(Point3df scale){_scale = scale;}
     void set_scale(float scale){_scale = Point3df(scale,scale,scale);}
+    const QMatrix4x4& get_matrix(){
+        QMatrix4x4 matrix;
+        matrix.setToIdentity();
+        matrix.translate(_position.x(),_position.y(),_position.z());
+        matrix.scale(_scale.x(),_scale.y(),_scale.z());
+        matrix.rotate(_rotate);
+    }
 
 private :
     QQuaternion _rotate;
     Point3df _position;
     Point3df _scale;
+
 };
 
 #endif // TRANSFORM_H
