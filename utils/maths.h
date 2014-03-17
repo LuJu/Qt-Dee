@@ -40,4 +40,9 @@ double absolute_value(double value);
 
 double potential_energy(double mass, double gravitation, double height);
 
+template <class T>
+const T& clamp(const T& a, const T& lower, const T& upper) {
+    return (a < lower ? lower : (upper< a ? upper : a));
+}
+
 #endif // MATHS_H
