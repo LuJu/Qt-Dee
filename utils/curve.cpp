@@ -53,7 +53,35 @@ float Curve::get_value(float x) const{
     }
 }
 
-float Curve::interpolate(float time1,float value1,float time2,float value2, float target) const{
+//(y2-y1)/(x2-x1)
+float Curve::get_right_slope(float x) const{
+    float value = 0.0f;
+    QMap<float,float>::const_iterator it;
+    QMap<float,float>::const_iterator it2;
+    it = lowerBound(x);
+    if (it==end()){
+        it2 = it-1;
+        return get_slope(it2.key(),it2.value(),it.key(),it.value());
+    }
+    if (it==begin()) {
+        return get_slope(it.key(),it.value(),(it+1).key(),(it+1).value());
+    } else if (it.key() == x) {
+        return get_slope(it.key(),(it+1).key(),it.value(),(it+1).value());
+    } else {
+        QMap<float,float>::const_iterator it2 = it;
+        it2--;
+        return get_slope(it2.key(),it2.value(),it.key(),it.value(),x);
+    }
+
+}
+
+float Curve::get_slope(float x1,float y1,float x2,float y2) const{
+    if (x1 != x2)
+        return (y2-y1) / (x2/x1);
+    else return nanf();
+}
+
+float Curve::interpolate(float x1,float y1 ,float x2,float y2, float target) const{
     switch (_interpolation){
     case linear:
         return linearInterpolation(time1, value1, time2, value2,  target);
@@ -84,6 +112,7 @@ float Curve::linearInterpolation(float time1,float value1,float time2,float valu
         return ret;
     }
 }
+
 
 
 

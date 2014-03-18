@@ -51,7 +51,7 @@ public:
     Curve();
     Curve(QString label);
 
-    //! returns the value of the curve at the time given in parameter
+    //! returns the value of the curve at the x given in parameter
     /*!
         The value returned depends on the _interpolation type if the x asked for is not in the curve
         \n Status  1 : not implemented
@@ -121,14 +121,14 @@ protected:
     /*!
         description
         \n Status  1 : not implemented
-        \param  time1 : time for the first value
-        \param  value1 : first value
-        \param  time2 : time for the second value
-        \param  value2 : second value
+        \param  x1 : time for the first value
+        \param  y1 : first value
+        \param  x2 : time for the second value
+        \param  y2 : second value
         \param target : the time targeted for the return value
         \return the value at time target, 0 if the input values are not valid
     */
-    float interpolate(float time1,float value1,float time2,float value2, float target) const;
+    float interpolate(float x1,float y1 ,float x2,float y2, float target) const;
 
 
 };
