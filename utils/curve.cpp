@@ -54,61 +54,59 @@ float Curve::get_value(float x) const{
 }
 
 //(y2-y1)/(x2-x1)
-float Curve::get_right_slope(float x) const{
+float Curve::get_slope(float x, bool right) const{
     float value = 0.0f;
     QMap<float,float>::const_iterator it;
     QMap<float,float>::const_iterator it2;
     it = lowerBound(x);
-    if (it==end()){
+    if (it==end() || (it==begin() && it.key()!=x)){ //not in the definition of the function
+        return 0.0f;
+    } else if (it==(end()-1)){ // last key
+        return get_variation((it-1).key(),(it-1).value(),it.key(),it.value());
+    } else if (it==begin()) { // first key
+        return get_variation(it.key(),it.value(),(it+1).key(),(it+1).value());
+    } else if (it.key() == x) { //exactly on key, returns value depending on right or left inclusion
+        if (right)
+            return  get_variation(it.key(),it.value(),(it+1).key(),(it+1).value());
+        else return get_variation((it-1).key(),(it-1).value(),it.key(),it.value());
+    } else { //not exactly on one of the keys
         it2 = it-1;
-        return get_slope(it2.key(),it2.value(),it.key(),it.value());
+        return get_variation(it2.key(),it2.value(),it.key(),it.value());
     }
-    if (it==begin()) {
-        return get_slope(it.key(),it.value(),(it+1).key(),(it+1).value());
-    } else if (it.key() == x) {
-        return get_slope(it.key(),(it+1).key(),it.value(),(it+1).value());
-    } else {
-        QMap<float,float>::const_iterator it2 = it;
-        it2--;
-        return get_slope(it2.key(),it2.value(),it.key(),it.value(),x);
-    }
-
 }
 
-float Curve::get_slope(float x1,float y1,float x2,float y2) const{
-    if (x1 != x2)
-        return (y2-y1) / (x2/x1);
-    else return nanf();
+float Curve::get_variation(float x1,float y1,float x2,float y2) const{
+    return (y2-y1) / (x2-x1);
 }
 
 float Curve::interpolate(float x1,float y1 ,float x2,float y2, float target) const{
     switch (_interpolation){
     case linear:
-        return linearInterpolation(time1, value1, time2, value2,  target);
+        return linearInterpolation(x1, y1, x2, y2,  target);
         break;
     case upper:
-        return value2;
+        return y2;
         break;
     case lower:
-        return value1;
+        return y1;
         break;
     case closest:
-        return (absolute_value(target-time1) < absolute_value(time2-target))?value1:value2;
+        return (absolute_value(target-x1) < absolute_value(x2-target))?y1:y2;
         break;
     }
 
 }
-float Curve::linearInterpolation(float time1,float value1,float time2,float value2, float target) const {
+float Curve::linearInterpolation(float x1,float y1,float x2,float y2, float target) const {
     float interval,interval_target,proportion,diff,value_prop,ret;
-    if (target < time1 || target > time2){
+    if (target < x1 || target > x2){
         return 0;
     } else {
-        interval = time2 - time1;
-        interval_target = target - time1;
+        interval = x2 - x1;
+        interval_target = target - x1;
         proportion = interval_target/interval;
-        diff = value2 - value1;
+        diff = y2 - y1;
         value_prop = proportion * diff;
-        ret = value1 + value_prop;
+        ret = y1 + value_prop;
         return ret;
     }
 }

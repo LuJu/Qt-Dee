@@ -30,6 +30,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QMap>
 #include <QColor>
 
+#include <QDebug>
+
 #include <utils/triplet.h>
 #include <utils/maths.h>
 
@@ -111,6 +113,9 @@ public:
 
     const QString& get_label() const {return _label;}
     void set_label(const QString& label){_label = label;}
+
+    float get_variation(float x1,float y1,float x2,float y2) const;
+    float get_slope(float x, bool right = true) const;
 
 
 protected:
