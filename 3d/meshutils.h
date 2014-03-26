@@ -29,6 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "mesh.h"
 #include "vertex.h"
+#include "bezierpath.h"
 #include "utils/curve.h"
 
 class MeshUtils
@@ -41,6 +42,7 @@ public:
     static void addCircle(Mesh *mesh, float position_y, float radius);
 
     static void render(const Curve& curve, int normalization, const QColor& color, int thickness, bool points=false);
+    static void render(const BezierPath& path);
     static void drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression);
 
     virtual void abstract()=0;

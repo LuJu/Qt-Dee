@@ -116,6 +116,7 @@ public:
 
     float get_variation(float x1,float y1,float x2,float y2) const;
     float get_slope(float x, bool right = true) const;
+    Curve get_slope_curve() const;
 
 
 protected:

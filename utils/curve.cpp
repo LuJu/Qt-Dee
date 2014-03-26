@@ -59,23 +59,36 @@ float Curve::get_slope(float x, bool right) const{
     QMap<float,float>::const_iterator it;
     QMap<float,float>::const_iterator it2;
     it = lowerBound(x);
+
     if (it==end() || (it==begin() && it.key()!=x)){ //not in the definition of the function
         return 0.0f;
     } else if (it==(end()-1)){ // last key
         return get_variation((it-1).key(),(it-1).value(),it.key(),it.value());
     } else if (it==begin()) { // first key
         return get_variation(it.key(),it.value(),(it+1).key(),(it+1).value());
-    } else if (it.key() == x) { //exactly on key, returns value depending on right or left inclusion
+    } else if (it.key() == x) { //exactly on  key, returns value depending on right or left inclusion
+        qDebug()<<"xlol : "<<x;
         if (right)
             return  get_variation(it.key(),it.value(),(it+1).key(),(it+1).value());
         else return get_variation((it-1).key(),(it-1).value(),it.key(),it.value());
     } else { //not exactly on one of the keys
+        qDebug()<<"x : "<<x;
         it2 = it-1;
         return get_variation(it2.key(),it2.value(),it.key(),it.value());
     }
 }
 
+const Curve& Curve::get_slope_curve() const{
+    Curve c;
+    for (int i = 0; i < keys().size(); ++i) {
+        float key = keys()[i];
+        c.insert(keys()[i],get_slope(key));
+    }
+    return c;
+}
+
 float Curve::get_variation(float x1,float y1,float x2,float y2) const{
+    qDebug()<<"variation:"<<y1<<" "<<y2<<" "<<x1<<" "<<x2<<" ";
     return (y2-y1) / (x2-x1);
 }
 

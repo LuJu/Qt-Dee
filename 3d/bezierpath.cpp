@@ -33,7 +33,7 @@ BezierPath::BezierPath() :
 }
 
 
-BezierPath::BezierPath(Point3d<float> origin) :
+BezierPath::BezierPath(Point3df origin) :
     MovementPath(origin)
 {
     __build();
@@ -90,7 +90,7 @@ void BezierPath::bezierRecursive (Point3d<float> * b, int level)
 {
         if (level > 0) {
             Point3d<float> left[4], right[4];
-                left[0].x( b[0].x() );
+                left[0] = b[0];
                 left[0].y( b[0].y() );
                 left[0].z( b[0].z() );
                 left[1].x( (b[0].x() + b[1].x()) / 2 );

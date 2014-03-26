@@ -48,16 +48,18 @@ public:
         \param  input
         \return output
     */
-    void compute(Point3d<float> * b, int level=5);
-    virtual Point3d<float> nextPosition();
+    void compute(Point3df * b, int level=5);
+    virtual Point3df nextPosition();
     Point3df _bezier[4];
     virtual void drawPath(bool partial = true);
     virtual void displayPoints();
 
+    const QList<Point3df>& get_points()const{ return _bezier_points;}
+
 protected:
-    void appendPoints(Point3d<float> * p);
-    void bezierRecursive (Point3d<float> * b, int level);
-    QVector<Point3df> _bezier_points;
+    void appendPoints(Point3df * p);
+    void bezierRecursive (Point3df * b, int level);
+    QList<Point3df> _bezier_points;
 
 private:
     void __build();

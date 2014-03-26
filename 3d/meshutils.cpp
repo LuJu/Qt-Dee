@@ -89,7 +89,7 @@ void MeshUtils::addTube(Mesh * mesh, float length, float radius){
         //        _vertices.append(Vertex(radius * qSin(deg2rad(i+1)),length,radius * qCos(deg2rad(i+1))));
 //        for (int j = 0; j < 6; ++j) {
 //            _polygons.append(_polygons.size());
-//        }
+//        }avec le kkk a le mérite d'être drôle au moins
     }
 }
 
@@ -211,5 +211,20 @@ void MeshUtils::drawGrid(QRect bounds, const QColor &color, int thickness, int h
         i-=vertical_progression;
     }
 
+    mesh.render();
+}
+
+void MeshUtils::render(const BezierPath& path){
+    Mesh mesh;
+    mesh.set_type(Mesh::line_strip);
+    const QList<Point3df>& points = path.get_points();
+    for (int i = 0; i < points.size(); ++i) {
+        Vertex v(points[i].x(),points[i].y(),0);
+        v.set_color(1,1,0,1.0f);
+        mesh.get_vertices().append(v);
+        mesh.get_polygons().append(i);
+    }
+    mesh.set_texture_activated(false);
+    mesh.set_color_activated(false);
     mesh.render();
 }

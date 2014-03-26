@@ -160,6 +160,8 @@ void Mesh::render() const{
     disableClientStates();
 }
 
+
+
 Point3df Mesh::calculateNormal(Point3df u, Point3df v, Point3df w){
     Point3df normal;
     normal.x((u.y() * v.z()) - (u.z() * v.y()));
