@@ -86,13 +86,11 @@ void BezierPath::appendPoints(Point3d<float> * p)
     _bezier_points.append(Point3d<float>(p[3]));
 }
 
-void BezierPath::bezierRecursive (Point3d<float> * b, int level)
+void BezierPath::bezierRecursive (const Point3d<float> b[], int level)
 {
         if (level > 0) {
             Point3d<float> left[4], right[4];
                 left[0] = b[0];
-                left[0].y( b[0].y() );
-                left[0].z( b[0].z() );
                 left[1].x( (b[0].x() + b[1].x()) / 2 );
                 left[1].y( (b[0].y() + b[1].y()) / 2 );
                 left[1].z( (b[0].z() + b[1].z()) / 2 );
@@ -103,9 +101,7 @@ void BezierPath::bezierRecursive (Point3d<float> * b, int level)
                 left[3].y( (b[0].y() + 3*b[1].y() + 3*b[2].y() + b[3].y()) / 8 );
                 left[3].z( (b[0].z() + 3*b[1].z() + 3*b[2].z() + b[3].z()) / 8 );
                 if (level == 1) appendPoints(left);
-                right[0].x( left[3].x() );
-                right[0].y( left[3].y() );
-                right[0].z( left[3].z() );
+                right[0] = left[3] ;
                 right[1].x( (b[1].x() + 2*b[2].x() + b[3].x()) / 4 );
                 right[1].y( (b[1].y() + 2*b[2].y() + b[3].y()) / 4 );
                 right[1].z( (b[1].z() + 2*b[2].z() + b[3].z()) / 4 );

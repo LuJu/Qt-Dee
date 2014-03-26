@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <utils/triplet.h>
 #include <utils/maths.h>
+#include "3d/bezierpath.h"
 
 
 //! A Curve defined by a list of values
@@ -47,36 +48,16 @@ public:
         linear,
         upper,
         lower,
+        bezier,
         closest
     };
 
     Curve();
     Curve(QString label);
-
-    //! returns the value of the curve at the x given in parameter
-    /*!
-        The value returned depends on the _interpolation type if the x asked for is not in the curve
-        \n Status  1 : not implemented
-        \param  x : the x targeted
-        \return the value at the time targeted (an interpolation might be needed)
-    */
-    float get_value (float x) const;
+    ~Curve(){ if (_bezier) delete _bezier; }
 
     void set_interpolation(Interpolation interpolation);
-
-
-    //! returns the linear interpolation of the values
-    /*!
-        description
-        \n Status  1 : not implemented
-        \param  time1 : time for the first value
-        \param  value1 : first value
-        \param  time2 : time for the second value
-        \param  value2 : second value
-        \param target : the time targeted for the return value
-        \return the value at time target, 0 if the input values are not valid
-    */
-    float linearInterpolation(float time1,float value1,float time2,float value2, float target) const;
+    float bezierInterpolation(float target);
 
 
     const QColor& get_color() const {return _color;}
@@ -84,8 +65,12 @@ public:
     QString _label;
 
     //! Returns the distance between the first and lase x value
-    float length() const {
+    float width() const {
         return (end()-1).key()-begin().key();
+    }
+    //! Returns the distance between the first and lase x value
+    float height() const {
+        return get_max()-get_min();
     }
     
     //! Returns the min of all the values in the curve
@@ -114,9 +99,29 @@ public:
     const QString& get_label() const {return _label;}
     void set_label(const QString& label){_label = label;}
 
-    float get_variation(float x1,float y1,float x2,float y2) const;
-    float get_slope(float x, bool right = true) const;
-    Curve get_slope_curve() const;
+    //! returns the value of the curve at the x given in parameter
+    /*!
+        The value returned depends on the _interpolation type if the x asked for is not in the curve
+        \n Status  1 : not implemented
+        \param  x : the x targeted
+        \return the value at the time targeted (an interpolation might be needed)
+    */
+    float get_value (float x) const;
+
+    //! returns the tangent of the curve at the x given in parameter
+    /*!
+        \param  x : the x targeted
+        \return the tangent value at the time targeted
+    */
+    float tangentAt(float x, bool right = true) const;
+    //! returns a curve representing the tangent of the curve at every x defined in the curve
+    /*!
+        \return the tangent curve
+    */
+    Curve tangentCurve() const;
+    mutable Curve * _bezier;
+    void toBezier()const ;
+    float bezierInterpolation (float target)const;
 
 
 protected:
@@ -136,12 +141,32 @@ protected:
     */
     float interpolate(float x1,float y1 ,float x2,float y2, float target) const;
 
+    //! returns the linear interpolation of the values
+    /*!
+        description
+        \n Status  1 : not implemented
+        \param  time1 : time for the first value
+        \param  value1 : first value
+        \param  time2 : time for the second value
+        \param  value2 : second value
+        \param target : the time targeted for the return value
+        \return the value at time target, 0 if the input values are not valid
+    */
+    float linearInterpolation(float time1,float value1,float time2,float value2, float target) const;
+    float get_variation(float x1,float y1,float x2,float y2) const;
+
 
 };
 
 
 class Curve3d : public Triplet<Curve>
 {
+public:
+    void set_interpolation(Curve::Interpolation interpolation){
+        x().set_interpolation(interpolation);
+        y().set_interpolation(interpolation);
+        z().set_interpolation(interpolation);
+    }
 };
 
 

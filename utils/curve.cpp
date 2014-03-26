@@ -28,10 +28,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 Curve::Curve(QString label) :
     _interpolation(linear),
+    _bezier(NULL),
     _label(label) {
 }
 
 Curve::Curve() :
+    _bezier(NULL),
     _interpolation(linear) {
 }
 
@@ -54,7 +56,7 @@ float Curve::get_value(float x) const{
 }
 
 //(y2-y1)/(x2-x1)
-float Curve::get_slope(float x, bool right) const{
+float Curve::tangentAt(float x, bool right) const{
     float value = 0.0f;
     QMap<float,float>::const_iterator it;
     QMap<float,float>::const_iterator it2;
@@ -67,28 +69,25 @@ float Curve::get_slope(float x, bool right) const{
     } else if (it==begin()) { // first key
         return get_variation(it.key(),it.value(),(it+1).key(),(it+1).value());
     } else if (it.key() == x) { //exactly on  key, returns value depending on right or left inclusion
-        qDebug()<<"xlol : "<<x;
         if (right)
             return  get_variation(it.key(),it.value(),(it+1).key(),(it+1).value());
         else return get_variation((it-1).key(),(it-1).value(),it.key(),it.value());
     } else { //not exactly on one of the keys
-        qDebug()<<"x : "<<x;
         it2 = it-1;
         return get_variation(it2.key(),it2.value(),it.key(),it.value());
     }
 }
 
-const Curve& Curve::get_slope_curve() const{
+Curve Curve::tangentCurve() const{
     Curve c;
     for (int i = 0; i < keys().size(); ++i) {
         float key = keys()[i];
-        c.insert(keys()[i],get_slope(key));
+        c.insert(keys()[i],tangentAt(key));
     }
     return c;
 }
 
 float Curve::get_variation(float x1,float y1,float x2,float y2) const{
-    qDebug()<<"variation:"<<y1<<" "<<y2<<" "<<x1<<" "<<x2<<" ";
     return (y2-y1) / (x2-x1);
 }
 
@@ -106,9 +105,18 @@ float Curve::interpolate(float x1,float y1 ,float x2,float y2, float target) con
     case closest:
         return (absolute_value(target-x1) < absolute_value(x2-target))?y1:y2;
         break;
+    case bezier:
+        return bezierInterpolation(target);
     }
 
 }
+
+float Curve::bezierInterpolation (float target)const{
+    if (_bezier == NULL)
+        toBezier();
+    return _bezier->get_value(target);
+}
+
 float Curve::linearInterpolation(float x1,float y1,float x2,float y2, float target) const {
     float interval,interval_target,proportion,diff,value_prop,ret;
     if (target < x1 || target > x2){
@@ -124,7 +132,31 @@ float Curve::linearInterpolation(float x1,float y1,float x2,float y2, float targ
     }
 }
 
+void Curve::toBezier() const{
 
+    BezierPath bezier;
+    BezierPath temp;
+    float x1,x2,y1,y2;
+    const QList<float>& xkeys = keys();
+    for (int i = 0; i < xkeys.size()-1;i++) {
+        x1 = xkeys[i];
+        x2 = xkeys[i+1];
+        y1 = value(x1);
+        y2 = value(x2);
+        temp = BezierPath();
+        temp.setControlPoints(  Point3df(x1,y1,0),
+                                Point3df(x1+x1/4,y1,0),
+                                Point3df(x2-x2/4,y2,0),
+                                Point3df(x2,y2,0));
+        temp.compute(temp._bezier,6);
+        bezier.merge(temp);
+    }
+    _bezier = new Curve();
+    QList<Point3df> points = bezier.get_points();
+    for (int i = 0; i < points.size(); ++i) {
+        _bezier->insert(points[i].x(),points[i].y());
+    }
+}
 
 
 

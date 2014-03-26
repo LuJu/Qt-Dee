@@ -51,19 +51,36 @@ public:
     void compute(Point3df * b, int level=5);
     virtual Point3df nextPosition();
     Point3df _bezier[4];
+    void setControlPoints(Point3df a,Point3df b,Point3df c,Point3df d){
+        int i=0;
+        _bezier[i++] = a;
+        _bezier[i++] = b;
+        _bezier[i++] = c;
+        _bezier[i++] = d;
+    }
+
     virtual void drawPath(bool partial = true);
     virtual void displayPoints();
 
     const QList<Point3df>& get_points()const{ return _bezier_points;}
+    bool is_computed() const {return _computed;}
+
+    void merge(const BezierPath& other){
+        qDebug()<<_bezier_points.size();
+        _bezier_points<<other._bezier_points;
+        qDebug()<<_bezier_points.size();
+        qDebug();
+    }
+
 
 protected:
     void appendPoints(Point3df * p);
-    void bezierRecursive (Point3df * b, int level);
+    void bezierRecursive (const Point3df b[], int level);
     QList<Point3df> _bezier_points;
 
 private:
     void __build();
-    bool _computed;
+    mutable bool _computed;
 };
 
 #endif // BEZIERPATH_H
