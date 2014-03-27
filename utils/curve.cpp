@@ -37,6 +37,17 @@ Curve::Curve() :
     _interpolation(linear) {
 }
 
+
+Curve::Curve(const Curve& other):
+    QMap<float,float>(other),
+    _interpolation(other._interpolation),
+    _bezier(NULL)
+{
+    if (other._bezier != NULL){
+        _bezier = new Curve(*(other._bezier));
+    }
+}
+
 void Curve::set_interpolation(Interpolation interpolation){
     _interpolation = interpolation;
 }
@@ -136,18 +147,28 @@ void Curve::toBezier() const{
 
     BezierPath bezier;
     BezierPath temp;
-    float x1,x2,y1,y2;
+    float x1,x2,y1,y2,x_dist;
     const QList<float>& xkeys = keys();
     for (int i = 0; i < xkeys.size()-1;i++) {
         x1 = xkeys[i];
         x2 = xkeys[i+1];
         y1 = value(x1);
         y2 = value(x2);
+        x_dist = (x2-x1)/4;
+        qDebug()<<"x1 :"<<x1;
+        qDebug()<<"x2 :"<<x2;
+        qDebug()<<"y1 :"<<y1;
+        qDebug()<<"y2 :"<<y2;
         temp = BezierPath();
         temp.setControlPoints(  Point3df(x1,y1,0),
-                                Point3df(x1+x1/4,y1,0),
-                                Point3df(x2-x2/4,y2,0),
+                                Point3df(x1+x_dist,y1,0),
+                                Point3df(x2-x_dist,y2,0),
                                 Point3df(x2,y2,0));
+
+        if (x1 == 8750.0f && x2 == 10000.0f && y1 == 0.95f && y2 == 0.0f){
+            qDebug()<<"match";
+
+        }
         temp.compute(temp._bezier,6);
         bezier.merge(temp);
     }

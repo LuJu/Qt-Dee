@@ -54,7 +54,23 @@ public:
 
     Curve();
     Curve(QString label);
+    Curve(const Curve& other);
+
     ~Curve(){ if (_bezier) delete _bezier; }
+
+    /** Copy Assignment Operator */
+    Curve& operator= (Curve other)
+    {
+        qDebug()<<size();
+        qDebug()<<other.size();
+        QMap<float,float>::operator =(other);
+        qDebug()<<size();
+        if(other._bezier != NULL){
+            _bezier = new Curve(*(other._bezier));
+        } else _bezier = NULL;
+        return *this;
+    }
+
 
     void set_interpolation(Interpolation interpolation);
     float bezierInterpolation(float target);
@@ -120,6 +136,18 @@ public:
     */
     Curve tangentCurve() const;
     mutable Curve * _bezier;
+    Curve get_bezier(){
+        if (_bezier) {
+            qDebug()<<"return not null";
+            return *_bezier;
+
+        }
+        else{
+            qDebug()<<"return null";
+            return Curve();
+        }
+    }
+
     void toBezier()const ;
     float bezierInterpolation (float target)const;
 
@@ -163,9 +191,9 @@ class Curve3d : public Triplet<Curve>
 {
 public:
     void set_interpolation(Curve::Interpolation interpolation){
-        x().set_interpolation(interpolation);
-        y().set_interpolation(interpolation);
-        z().set_interpolation(interpolation);
+        _x.set_interpolation(interpolation);
+        _y.set_interpolation(interpolation);
+        _z.set_interpolation(interpolation);
     }
 };
 
