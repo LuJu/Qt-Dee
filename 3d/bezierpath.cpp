@@ -100,7 +100,7 @@ void BezierPath::bezierRecursive (const Point3d<float> b[], int level)
                 left[3].x( (b[0].x() + 3*b[1].x() + 3*b[2].x() + b[3].x()) / 8 );
                 left[3].y( (b[0].y() + 3*b[1].y() + 3*b[2].y() + b[3].y()) / 8 );
                 left[3].z( (b[0].z() + 3*b[1].z() + 3*b[2].z() + b[3].z()) / 8 );
-                if (level == 1) appendPoints(left);
+//                if (level == 1) appendPoints(left);
                 right[0] = left[3] ;
                 right[1].x( (b[1].x() + 2*b[2].x() + b[3].x()) / 4 );
                 right[1].y( (b[1].y() + 2*b[2].y() + b[3].y()) / 4 );
@@ -108,18 +108,36 @@ void BezierPath::bezierRecursive (const Point3d<float> b[], int level)
                 right[2].x( (b[2].x() + b[3].x()) / 2 );
                 right[2].y( (b[2].y() + b[3].y()) / 2 );
                 right[2].z( (b[2].z() + b[3].z()) / 2 );
-                right[3].x( b[3].x() );
-                right[3].y( b[3].y() );
-                right[3].z( b[3].z() );
-                if (level == 1) appendPoints(right);
-
-                bezierRecursive (left, level -1);
-                bezierRecursive (right,level -1);
+                right[3] = b[3];
+                if (level == 1) {
+                    _bezier_points.append(Point3d<float>(left[0]));
+                    _bezier_points.append(Point3d<float>(left[1]));
+                    _bezier_points.append(Point3d<float>(left[2]));
+                    _bezier_points.append(Point3d<float>(left[3]));
+                    _bezier_points.append(Point3d<float>(right[0]));
+                    _bezier_points.append(Point3d<float>(right[1]));
+                    _bezier_points.append(Point3d<float>(right[2]));
+                    _bezier_points.append(Point3d<float>(right[3]));
+                } else {
+                    bezierRecursive (left, level -1);
+                    bezierRecursive (right,level -1);
+                }
         }
 }
 
 void BezierPath::compute(Point3d<float> * b, int level)
 {
-      bezierRecursive(b,level);
-      _computed=true;
+    qDebug()<<"points: "<<b[0].x()<<" "<<b[0].y();
+    qDebug()<<"points: "<<b[1].x()<<" "<<b[1].y();
+    qDebug()<<"points: "<<b[2].x()<<" "<<b[2].y();
+    qDebug()<<"points: "<<b[3].x()<<" "<<b[3].y();
+    qDebug()<<"before";
+//    display();
+    bezierRecursive(b,level);
+//    qDebug()<<"after";
+//    display();
+    //      qDebug()<<"cleaning up";
+    deleteDoubles();
+//    display();
+    _computed=true;
 }

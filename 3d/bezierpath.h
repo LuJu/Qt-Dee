@@ -66,10 +66,29 @@ public:
     bool is_computed() const {return _computed;}
 
     void merge(const BezierPath& other){
-        qDebug()<<_bezier_points.size();
-        _bezier_points<<other._bezier_points;
-        qDebug()<<_bezier_points.size();
-        qDebug();
+        _bezier_points.append(other._bezier_points);
+        deleteDoubles();
+    }
+
+    void display(){
+        qDebug()<<"size:"<<_bezier_points.size();
+        for (int i = 0; i < _bezier_points.size(); ++i) {
+            qDebug()<<"point: "<<_bezier_points[i].x()<<_bezier_points[i].y()<<_bezier_points[i].z();
+        }
+    }
+
+    void deleteDoubles(){
+        QList<Point3df>::iterator i,found;
+
+        for (i = _bezier_points.begin(); i != _bezier_points.end(); ++i) {
+            do {
+                found = qFind(i+1,_bezier_points.end(),*i);
+                if (found != _bezier_points.end()){
+//                        qDebug()<<"found double ";
+                        _bezier_points.erase(found);
+                }
+            } while (found != _bezier_points.end());
+        }
     }
 
 

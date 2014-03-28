@@ -61,10 +61,10 @@ public:
     /** Copy Assignment Operator */
     Curve& operator= (Curve other)
     {
-        qDebug()<<size();
-        qDebug()<<other.size();
+//        qDebug()<<size();
+//        qDebug()<<other.size();
         QMap<float,float>::operator =(other);
-        qDebug()<<size();
+//        qDebug()<<size();
         if(other._bezier != NULL){
             _bezier = new Curve(*(other._bezier));
         } else _bezier = NULL;
@@ -99,6 +99,9 @@ public:
         }
         return min;
     }
+
+    void display()const;
+    void displayB()const;
 
     //! Returns the max of all the values in the curve
     float get_max() const{
@@ -150,6 +153,7 @@ public:
 
     void toBezier()const ;
     float bezierInterpolation (float target)const;
+    void calculateAnchorPoints(Point3df pn, Point3df pnm1, Point3df pnp1, Point3df pnp2, float factor, Point3df* out) const;
 
 
 protected:

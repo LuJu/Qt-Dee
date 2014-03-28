@@ -149,6 +149,7 @@ void Curve::toBezier() const{
     BezierPath temp;
     float x1,x2,y1,y2,x_dist;
     const QList<float>& xkeys = keys();
+//    for (int i = 0; i < 1;i++) {
     for (int i = 0; i < xkeys.size()-1;i++) {
         x1 = xkeys[i];
         x2 = xkeys[i+1];
@@ -160,23 +161,72 @@ void Curve::toBezier() const{
         qDebug()<<"y1 :"<<y1;
         qDebug()<<"y2 :"<<y2;
         temp = BezierPath();
-        temp.setControlPoints(  Point3df(x1,y1,0),
-                                Point3df(x1+x_dist,y1,0),
-                                Point3df(x2-x_dist,y2,0),
-                                Point3df(x2,y2,0));
-
-        if (x1 == 8750.0f && x2 == 10000.0f && y1 == 0.95f && y2 == 0.0f){
-            qDebug()<<"match";
+        Point3df controls[4];
+        Point3df points[4];
+        Point3df control_buffer[2];
+        controls[0] =  Point3df(x1,y1,0);
+        controls[3] =  Point3df(x2,y2,0);
+        if (i>0 && i< xkeys.size()-2){
+            points[0]= Point3df(xkeys[i-1],value(xkeys[i-1]),0);
+            points[1]= controls[0];
+            points[2]= controls[3];
+            points[3]= Point3df(xkeys[i+2],value(xkeys[i+2]),0);
+            calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
+        } else {
+            points[0]= controls[0];
+            points[1]= controls[0];
+            points[2]= controls[3];
+            points[3]= controls[3];
+            calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
 
         }
-        temp.compute(temp._bezier,6);
+        controls[1] =  control_buffer[0];
+        controls[2] =  control_buffer[1];
+
+        temp.setControlPoints(  controls[0],
+                                controls[1],
+                                controls[2],
+                                controls[3]);
+        temp.compute(temp._bezier,5);
         bezier.merge(temp);
+//        qDebug()<<"step: ";
+        qDebug()<<"lol: ";
+//        bezier.display();
+        qDebug()<<"lol: ";
     }
+//    bezier.deleteDoubles();
     _bezier = new Curve();
+
     QList<Point3df> points = bezier.get_points();
     for (int i = 0; i < points.size(); ++i) {
         _bezier->insert(points[i].x(),points[i].y());
     }
+//    display();
+//    qDebug();
+//    displayB();
+//    qDebug();
+}
+
+void Curve::display()const{
+    for (int i = 0; i < keys().size(); ++i) {
+        qDebug()<<keys()[i]<<value(keys()[i]);
+    }
+}
+void Curve::displayB()const{
+    _bezier->display();
+}
+
+void Curve::calculateAnchorPoints(Point3df pnm1,Point3df pn,  Point3df pnp1, Point3df pnp2, float factor, Point3df* out) const{
+    Point3df s1a,s1b,s2a,s2b,s2,s1,m;
+    s1 = pn + (pn-pnm1);
+    s2 = pnp1 + (pnp1-pnp2);
+    s1a = pn + (s1-pn) * factor;
+    s2a = pnp1 + (s2-pnp1) * factor;
+    m = pn + (pnp1-pn) / 2.f;
+    s1b = pn + (s1a-pn)/2.f;
+    s2b = pnp1 + (s2a-pnp1)/2.f;
+    out[0] = m + (s1b-m)/2.f;
+    out[1] = m + (s2b-m)/2.f;
 }
 
 

@@ -142,6 +142,22 @@ public:
     static Vector3d<T> normalVector(const Point3d<T>& a, const Point3d<T>& b, const Point3d<T>& c);
 };
 
+//! redefinition of the above class for commutativity
+//template<class T> Point3d<T> operator*(T s, const Point3d<T>& p)
+//{
+//    return Point3d<T>(p.x() * s, p.y() * s, p.z() * s);
+//}
+
+
+template<class T> Point3d<T> operator+(const Point3d<T>& a, const Point3d<T>& b){
+    return Point3d<T>(a.x() + b.x(), a.y() + b.y(), a.z() + b.z());
+}
+
+template<class T> Point3d<T> operator-(const Point3d<T>& a, const Point3d<T>& b){
+    return Point3d<T>(a.x() - b.x(), a.
+                      y() - b.y(), a.z() - b.z());
+}
+
 
 
 template<class T> Point3d<T>::Point3d():
@@ -179,6 +195,16 @@ template<class T> Point3d<T> operator*(const Point3d<T>& p, T s)
 template<class T> Point3d<T> operator*(T s, const Point3d<T>& p)
 {
     return Point3d<T>(p.x() * s, p.y() * s, p.z() * s);
+}
+
+template<class T> Point3d<T> operator/(T s, const Point3d<T>& p)
+{
+    return Point3d<T>(p.x() / s, p.y() / s, p.z() / s);
+}
+
+template<class T> Point3d<T> operator/(const Point3d<T>& p, T s)
+{
+    return Point3d<T>(p.x() / s, p.y() / s, p.z() / s);
 }
 
 template<class T> T Point3d<T>::distanceTo(const Point3d& p) const
