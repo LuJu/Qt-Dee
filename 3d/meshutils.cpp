@@ -89,7 +89,7 @@ void MeshUtils::addTube(Mesh * mesh, float length, float radius){
         //        _vertices.append(Vertex(radius * qSin(deg2rad(i+1)),length,radius * qCos(deg2rad(i+1))));
 //        for (int j = 0; j < 6; ++j) {
 //            _polygons.append(_polygons.size());
-//        }avec le kkk a le mérite d'être drôle au moins
+//        }
     }
 }
 
@@ -227,4 +227,44 @@ void MeshUtils::render(const BezierPath& path){
     mesh.set_texture_activated(false);
     mesh.set_color_activated(false);
     mesh.render();
+}
+
+
+void MeshUtils::addFlatSurface(Mesh * mesh){
+    Vertex v[3];
+    Point3df color;
+
+    mesh->set_texture_activated(false);
+    mesh->set_color_activated(true);
+    mesh->set_normal_activated(false);
+
+    for (int i = -5; i < 5; i++) {
+        for (int j = -5; j < 5; j++) {
+            if ((i+5)%2 == 0 && (j+5)%2==0 || (i+5)%2 == 1 && (j+5)%2==1)
+                color = Point3df(0.1,0.1,0.1);
+            else color = Point3df(0.9,0.9,0.9);
+            float a= i;
+            float b= j;
+            float l = .1f;
+
+            v[0]._point = Point3df( b*l,0,      a*l);
+            v[1]._point = Point3df((b+1) *l ,0, a*l);
+            v[2]._point = Point3df((b+1) *l ,0,(a+1)*l);
+            for (int k = 0; k < 3; ++k) {
+                v[k].set_color(color.x(),color.y(),color.z(),1);
+            }
+            mesh->addPolygon(v[0],v[1],v[2]);
+            v[0]._point = Point3df(b*l,0,a*l);
+            v[1]._point = Point3df((b+1)*l, 0,(a+1)*l);
+            v[2]._point = Point3df(b*l ,0,(a+1)*l);
+            for (int k = 0; k < 3; ++k) {
+                v[k].set_color(color.x(),color.y(),color.z(),1);
+            }
+            mesh->addPolygon(v[0],v[1],v[2]);
+
+        }
+
+    }
+
+
 }

@@ -137,6 +137,7 @@ public:
     inline T distanceToSquared(const Point3d& p) const;
     inline T distanceFromOrigin() const;
     inline T distanceFromOriginSquared() const;
+    inline void normalize();
 
     //! Returns the normal vector of three points (not implemented yet)
     static Vector3d<T> normalVector(const Point3d<T>& a, const Point3d<T>& b, const Point3d<T>& c);
@@ -228,6 +229,15 @@ template<class T> T Point3d<T>::distanceFromOriginSquared() const
 {
     return ExtendedTriplet<T>::_x * ExtendedTriplet<T>::_x + ExtendedTriplet<T>::_y * ExtendedTriplet<T>::_y + ExtendedTriplet<T>::_z * ExtendedTriplet<T>::_z;
 }
+
+template<class T> void Point3d<T>::normalize()
+{
+    T s = 1 / (T) distanceFromOriginSquared();
+    ExtendedTriplet<T>::_x *= s;
+    ExtendedTriplet<T>::_y *= s;
+    ExtendedTriplet<T>::_z *= s;
+}
+
 
 template<class T> Vector3d<T> Point3d<T>::normalVector(const Point3d<T>& a, const Point3d<T>& b, const Point3d<T>& c)
 {

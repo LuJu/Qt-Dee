@@ -46,9 +46,11 @@ public:
 
     void colorFromPoint(){
         int i=0;
-        _color[i++] = _point.x();
-        _color[i++] = _point.y();
-        _color[i++] = _point.z();
+        Point3df point = _point;
+        point.normalize();
+        _color[i++] = point.x();
+        _color[i++] = point.y();
+        _color[i++] = point.z();
         _color[i++] = 1.0f;
     }
     void colorFromNormal(){
