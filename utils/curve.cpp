@@ -72,11 +72,19 @@ float Curve::tangentAt(float x, bool right) const{
     QMap<float,float>::const_iterator it;
     QMap<float,float>::const_iterator it2;
     it = lowerBound(x);
+    if (_interpolation == bezier){
+        if (_bezier == NULL)
+            toBezier();
+        return _bezier->tangentAt(x,right);
+    }
+
 
     if (it==end() || (it==begin() && it.key()!=x)){ //not in the definition of the function
         return 0.0f;
     } else if (it==(end()-1)){ // last key
-        return get_variation((it-1).key(),(it-1).value(),it.key(),it.value());
+        if (it==begin()){ // only one key
+            return 0.0f;
+        } else return get_variation((it-1).key(),(it-1).value(),it.key(),it.value());
     } else if (it==begin()) { // first key
         return get_variation(it.key(),it.value(),(it+1).key(),(it+1).value());
     } else if (it.key() == x) { //exactly on  key, returns value depending on right or left inclusion
@@ -99,7 +107,11 @@ Curve Curve::tangentCurve() const{
 }
 
 float Curve::get_variation(float x1,float y1,float x2,float y2) const{
-    return (y2-y1) / (x2-x1);
+    if (x1 != x2 && abs(x2-x1) > 1e-10){
+        qDebug()<<(y2-y1) / (x2-x1);
+        return (y2-y1) / (x2-x1);
+    }
+    else return y1;
 }
 
 float Curve::interpolate(float x1,float y1 ,float x2,float y2, float target) const{
@@ -149,7 +161,12 @@ void Curve::toBezier() const{
     BezierPath temp;
     float x1,x2,y1,y2,x_dist;
     const QList<float>& xkeys = keys();
+    _bezier = new Curve();
 //    for (int i = 0; i < 1;i++) {
+    qDebug()<<"size "<<xkeys.size();
+    if (xkeys.size() == 1){
+        _bezier->insert(xkeys[0],value(xkeys[0]));
+    }
     for (int i = 0; i < xkeys.size()-1;i++) {
         x1 = xkeys[i];
         x2 = xkeys[i+1];
@@ -190,12 +207,12 @@ void Curve::toBezier() const{
         temp.compute(temp._bezier,5);
         bezier.merge(temp);
 //        qDebug()<<"step: ";
-        qDebug()<<"lol: ";
+//        qDebug()<<"lol: ";
 //        bezier.display();
-        qDebug()<<"lol: ";
+//        qDebug()<<"lol: ";
     }
 //    bezier.deleteDoubles();
-    _bezier = new Curve();
+
 
     QList<Point3df> points = bezier.get_points();
     for (int i = 0; i < points.size(); ++i) {
