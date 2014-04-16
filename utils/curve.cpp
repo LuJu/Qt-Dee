@@ -56,7 +56,13 @@ void Curve::set_interpolation(Interpolation interpolation){
 float Curve::get_value(float x) const{
     QMap<float,float>::const_iterator it;
     it = lowerBound(x);
-    if (it== end()) return (--it).value();
+
+    if (it== end()){
+        if (end() == begin())
+            return 0.0f;
+        else
+            return (--it).value();
+    }
     if (it.key() == x || it==begin()) {
         return it.value();
     } else {
