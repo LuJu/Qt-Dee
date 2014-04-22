@@ -31,6 +31,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QStringList>
 #include <QList>
 #include <QFile>
+#include <QTextStream>
+#include <QDebug>
 
 //! class offering methods to parse a csv file
 /*!
@@ -40,7 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 class CSVParser : public QList<QStringList>
 {
 public:
-    explicit CSVParser();
+    explicit CSVParser(QString split=",");
     //! Parses the file given in parameter
     /*!
         \param  path : the path of the CSV file
@@ -55,6 +57,24 @@ public:
 //        line = l;
 //        return *this;
 //    }
+    CSVParser& operator<<(const QString& value){
+        insertion(value);
+        return *this;
+    }
+    CSVParser& operator<<(float value){
+        insertion(QString::number(value));
+        return *this;
+    }
+
+    void nextLine();
+    void previousLine();
+    bool saveInFile(QString name);
+
+private:
+    void insertion(const QString& value);
+    QString _split;
+    QChar _new_line;
+    int _current_line;
 };
 
 #endif // CSVPARSER_H

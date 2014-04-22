@@ -26,14 +26,20 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 #include "csvparser.h"
 
-CSVParser::CSVParser()
+CSVParser::CSVParser(QString split):
+    _split(split),
+    _new_line('\n'),
+    _current_line(0)
 {
+    append(QStringList()); // first line
 }
 
 bool CSVParser::parseFile(QString path,QString split){
     QFile file(path);
     QString data;
     QStringList datas;
+    _split = split;
+    clear();
     if(file.open(QIODevice::ReadOnly)){
         data=file.readAll();
         datas=data.split("\n",QString::SkipEmptyParts);
@@ -45,6 +51,57 @@ bool CSVParser::parseFile(QString path,QString split){
 }
 
 bool CSVParser::parseFile(QString path){
-    return parseFile(path,",");
+    return parseFile(path,_split);
 }
 
+void  CSVParser::insertion(const QString& value){
+    QStringList& list = (*this)[_current_line];
+    list<<value;
+}
+
+
+
+void CSVParser::nextLine(){
+    _current_line++;
+    if (_current_line == size())
+        append(QStringList());
+    else if (_current_line > size())
+        qWarning()<<"CSV file current line error";
+}
+void CSVParser::previousLine(){
+    if (_current_line > 0)
+        _current_line--;
+}
+
+
+bool CSVParser::saveInFile(QString name){
+    QFile file;
+    int i = 1;
+    QChar nl = _new_line;
+    QString c = _split;
+    QString ext="csv";
+    QString oldname=name;
+    file.setFileName(name+"."+ext);
+    // Checks if file already exists
+    while (file.exists()){
+        qWarning()<<"File already exists";
+        name = oldname+" ("+QString::number(i)+")";
+        file.setFileName(name+"."+ext);
+        ++i;
+    }
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+        qWarning()<<"Couldn't open file "<<name;
+        exit(0);
+    } else {
+        QTextStream stream(&file);
+        for (int i = 0; i <  size(); ++i) {
+            for (int j = 0; j < at(i).size(); ++j) {
+                stream<<at(i).at(j)<<c;
+            }
+            stream<<nl;
+        }
+        file.close();
+        qDebug()<<"File successfully written : "<<file.fileName();
+    }
+
+}
