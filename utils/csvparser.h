@@ -51,12 +51,8 @@ public:
     */
     bool parseFile(QString path, QString split);
     bool parseFile(QString path);
-//    CSVParser&	operator>> (QStringList& line){
-//        QStringList l = first();
-//        removeFirst();
-//        line = l;
-//        return *this;
-//    }
+
+
     CSVParser& operator<<(const QString& value){
         insertion(value);
         return *this;
@@ -68,7 +64,7 @@ public:
 
     void nextLine();
     void previousLine();
-    bool saveInFile(QString name);
+    bool saveInFile(QString name, QString ext="csv");
 
 private:
     void insertion(const QString& value);

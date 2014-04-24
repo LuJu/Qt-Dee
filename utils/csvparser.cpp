@@ -74,12 +74,11 @@ void CSVParser::previousLine(){
 }
 
 
-bool CSVParser::saveInFile(QString name){
+bool CSVParser::saveInFile(QString name, QString ext){
     QFile file;
     int i = 1;
     QChar nl = _new_line;
     QString c = _split;
-    QString ext="csv";
     QString oldname=name;
     file.setFileName(name+"."+ext);
     // Checks if file already exists
