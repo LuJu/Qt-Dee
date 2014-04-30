@@ -229,6 +229,23 @@ void MeshUtils::render(const BezierPath& path){
     mesh.render();
 }
 
+void MeshUtils::render(const Point3df& point){
+    Mesh mesh;
+    mesh.set_type(Mesh::points);
+    Vertex v(point);
+    v.set_color(1,1,0,1.0f);
+    mesh.get_vertices().append(v);
+    mesh.get_polygons().append(0);
+
+    mesh.set_texture_activated(false);
+    mesh.set_color_activated(false);
+    glDisable(GL_DEPTH_TEST);
+    qDebug()<<mesh.get_polygons().size();
+    qDebug()<<mesh.get_vertices().size();
+    mesh.render();
+    glEnable(GL_DEPTH_TEST);
+}
+
 
 void MeshUtils::addFlatSurface(Mesh * mesh){
     Vertex v[3];

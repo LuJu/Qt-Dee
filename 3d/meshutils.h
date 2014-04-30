@@ -45,6 +45,7 @@ public:
 
     static void render(const Curve& curve, int normalization, const QColor& color, int thickness, bool points=false);
     static void render(const BezierPath& path);
+    static void render(const Point3df& point);
     static void drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression);
 
     virtual void abstract()=0;
