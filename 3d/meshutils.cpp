@@ -240,8 +240,6 @@ void MeshUtils::render(const Point3df& point){
     mesh.set_texture_activated(false);
     mesh.set_color_activated(false);
     glDisable(GL_DEPTH_TEST);
-    qDebug()<<mesh.get_polygons().size();
-    qDebug()<<mesh.get_vertices().size();
     mesh.render();
     glEnable(GL_DEPTH_TEST);
 }
@@ -255,9 +253,9 @@ void MeshUtils::addFlatSurface(Mesh * mesh){
     mesh->set_color_activated(true);
     mesh->set_normal_activated(false);
 
-    for (int i = -5; i < 5; i++) {
-        for (int j = -5; j < 5; j++) {
-            if ((i+5)%2 == 0 && (j+5)%2==0 || (i+5)%2 == 1 && (j+5)%2==1)
+    for (int i = -10; i < 10; i++) {
+        for (int j = -10; j < 10; j++) {
+            if ((i+10)%2 == 0 && (j+10)%2==0 || (i+10)%2 == 1 && (j+10)%2==1)
                 color = Point3df(0.1,0.1,0.1);
             else color = Point3df(0.9,0.9,0.9);
             float a= i;

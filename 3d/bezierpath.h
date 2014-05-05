@@ -59,22 +59,13 @@ public:
         _bezier[i++] = d;
     }
 
-    virtual void drawPath(bool partial = true);
-    virtual void displayPoints();
-
     const QList<Point3df>& get_points()const{ return _bezier_points;}
+
     bool is_computed() const {return _computed;}
 
     void merge(const BezierPath& other){
         _bezier_points.append(other._bezier_points);
         deleteDoubles();
-    }
-
-    void display(){
-        qDebug()<<"size:"<<_bezier_points.size();
-        for (int i = 0; i < _bezier_points.size(); ++i) {
-            qDebug()<<"point: "<<_bezier_points[i].x()<<_bezier_points[i].y()<<_bezier_points[i].z();
-        }
     }
 
     void deleteDoubles(){
@@ -84,13 +75,11 @@ public:
             do {
                 found = qFind(i+1,_bezier_points.end(),*i);
                 if (found != _bezier_points.end()){
-//                        qDebug()<<"found double ";
                         _bezier_points.erase(found);
                 }
             } while (found != _bezier_points.end());
         }
     }
-
 
 protected:
     void appendPoints(Point3df * p);

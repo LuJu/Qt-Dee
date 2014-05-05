@@ -32,7 +32,6 @@ BezierPath::BezierPath() :
     __build();
 }
 
-
 BezierPath::BezierPath(Point3df origin) :
     MovementPath(origin)
 {
@@ -41,29 +40,6 @@ BezierPath::BezierPath(Point3df origin) :
 
 void BezierPath::__build(){
     _computed = false;
-
-}
-
-void BezierPath::drawPath(bool partial){
-    glLineWidth(1);
-    glLineStipple(1,0xFFFF);
-    int limit;
-    if (partial == true) limit = ( _progression * _bezier_points.size() ) /  _progression_max;
-    else limit = _bezier_points.size();
-    glBegin(GL_LINE_STRIP);{
-        for(int i=0;i<limit;i++){
-            glColor3b(0,0,0);
-            glVertex3f(_bezier_points[i].x(),_bezier_points[i].y(),_bezier_points[i].z());
-        }
-    } glEnd();
-}
-
-void BezierPath::displayPoints(){
-    glPointSize(5);
-    glBegin(GL_POINTS); {
-        for (int i=0; i<4;i++)
-            glVertex3f(_bezier[i].x(),_bezier[i].y(),_bezier[i].z());
-     } glEnd();
 }
 
 Point3d<float> BezierPath::nextPosition(){
@@ -71,12 +47,9 @@ Point3d<float> BezierPath::nextPosition(){
     int point = ( _progression * _bezier_points.size() ) /  _progression_max;
     _position = _bezier_points[point];
     _target->get_transform().set_position(_position);
-    drawPath();
-    displayPoints();
     updateProgression();
     return _position;
 }
-
 
 void BezierPath::appendPoints(Point3d<float> * p)
 {
@@ -127,17 +100,7 @@ void BezierPath::bezierRecursive (const Point3d<float> b[], int level)
 
 void BezierPath::compute(Point3d<float> * b, int level)
 {
-    qDebug()<<"points: "<<b[0].x()<<" "<<b[0].y();
-    qDebug()<<"points: "<<b[1].x()<<" "<<b[1].y();
-    qDebug()<<"points: "<<b[2].x()<<" "<<b[2].y();
-    qDebug()<<"points: "<<b[3].x()<<" "<<b[3].y();
-    qDebug()<<"before";
-//    display();
     bezierRecursive(b,level);
-//    qDebug()<<"after";
-//    display();
-    //      qDebug()<<"cleaning up";
     deleteDoubles();
-//    display();
     _computed=true;
 }

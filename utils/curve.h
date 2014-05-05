@@ -55,22 +55,10 @@ public:
     Curve();
     Curve(QString label);
     Curve(const Curve& other);
-
-    ~Curve(){ if (_bezier) delete _bezier; }
-
     /** Copy Assignment Operator */
-    Curve& operator= (Curve other)
-    {
-//        qDebug()<<size();
-//        qDebug()<<other.size();
-        QMap<float,float>::operator =(other);
-//        qDebug()<<size();
-        if(other._bezier != NULL){
-            _bezier = new Curve(*(other._bezier));
-        } else _bezier = NULL;
-        return *this;
-    }
+    Curve& operator= (Curve other);
 
+    virtual ~Curve(){ if (_bezier) delete _bezier; }
 
     void set_interpolation(Interpolation interpolation);
     float bezierInterpolation(float target);
@@ -80,11 +68,11 @@ public:
     void set_color(const QColor& color){_color = color;}
     QString _label;
 
-    //! Returns the distance between the first and lase x value
+    //! Returns the distance between the first and last x value
     float width() const {
         return (end()-1).key()-begin().key();
     }
-    //! Returns the distance between the first and lase x value
+    //! Returns the distance between the first and last y value
     float height() const {
         return get_max()-get_min();
     }

@@ -48,6 +48,15 @@ Curve::Curve(const Curve& other):
     }
 }
 
+Curve& Curve::operator= (Curve other)
+{
+    QMap<float,float>::operator =(other);
+    if(other._bezier != NULL){
+        _bezier = new Curve(*(other._bezier));
+    } else _bezier = NULL;
+    return *this;
+}
+
 void Curve::set_interpolation(Interpolation interpolation){
     _interpolation = interpolation;
 }
@@ -168,8 +177,6 @@ void Curve::toBezier() const{
     float x1,x2,y1,y2,x_dist;
     const QList<float>& xkeys = keys();
     _bezier = new Curve();
-//    for (int i = 0; i < 1;i++) {
-    qDebug()<<"size "<<xkeys.size();
     if (xkeys.size() == 1){
         _bezier->insert(xkeys[0],value(xkeys[0]));
     }
@@ -212,22 +219,12 @@ void Curve::toBezier() const{
                                 controls[3]);
         temp.compute(temp._bezier,5);
         bezier.merge(temp);
-//        qDebug()<<"step: ";
-//        qDebug()<<"lol: ";
-//        bezier.display();
-//        qDebug()<<"lol: ";
     }
-//    bezier.deleteDoubles();
-
 
     QList<Point3df> points = bezier.get_points();
     for (int i = 0; i < points.size(); ++i) {
         _bezier->insert(points[i].x(),points[i].y());
     }
-//    display();
-//    qDebug();
-//    displayB();
-//    qDebug();
 }
 
 void Curve::display()const{
