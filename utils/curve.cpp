@@ -179,46 +179,62 @@ void Curve::toBezier() const{
     _bezier = new Curve();
     if (xkeys.size() == 1){
         _bezier->insert(xkeys[0],value(xkeys[0]));
-    }
-    for (int i = 0; i < xkeys.size()-1;i++) {
-        x1 = xkeys[i];
-        x2 = xkeys[i+1];
-        y1 = value(x1);
-        y2 = value(x2);
-        x_dist = (x2-x1)/4;
-        qDebug()<<"x1 :"<<x1;
-        qDebug()<<"x2 :"<<x2;
-        qDebug()<<"y1 :"<<y1;
-        qDebug()<<"y2 :"<<y2;
-        temp = BezierPath();
-        Point3df controls[4];
-        Point3df points[4];
-        Point3df control_buffer[2];
-        controls[0] =  Point3df(x1,y1,0);
-        controls[3] =  Point3df(x2,y2,0);
-        if (i>0 && i< xkeys.size()-2){
-            points[0]= Point3df(xkeys[i-1],value(xkeys[i-1]),0);
-            points[1]= controls[0];
-            points[2]= controls[3];
-            points[3]= Point3df(xkeys[i+2],value(xkeys[i+2]),0);
-            calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
-        } else {
-            points[0]= controls[0];
-            points[1]= controls[0];
-            points[2]= controls[3];
-            points[3]= controls[3];
-            calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
+//    } else if (xkeys.size() == 2){
+//        _bezier->insert(xkeys[0],value(xkeys[0]));
+//        _bezier->insert(xkeys[1],value(xkeys[1]));
+    } else {
+        for (int i = 0; i < xkeys.size()-1;i++) {
+            x1 = xkeys[i];
+            x2 = xkeys[i+1];
+            y1 = value(x1);
+            y2 = value(x2);
+            x_dist = (x2-x1)/4;
+            qDebug()<<"x1 :"<<x1;
+            qDebug()<<"x2 :"<<x2;
+            qDebug()<<"y1 :"<<y1;
+            qDebug()<<"y2 :"<<y2;
+            temp = BezierPath();
+            Point3df controls[4];
+            Point3df points[4];
+            Point3df control_buffer[2];
+            controls[0] =  Point3df(x1,y1,0);
+            controls[3] =  Point3df(x2,y2,0);
+            if (i>0 && i< xkeys.size()-2){
+                points[0]= Point3df(xkeys[i-1],value(xkeys[i-1]),0);
+                points[1]= controls[0];
+                points[2]= controls[3];
+                points[3]= Point3df(xkeys[i+2],value(xkeys[i+2]),0);
+                calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
+            } else {
+                if (i == 0 && xkeys.size() > 2){
+                    points[0]= controls[0];
+                    points[1]= controls[0];
+                    points[2]= controls[3];
+                    points[3]= Point3df(xkeys[i+2],value(xkeys[i+2]),0);
+                } else if (i == xkeys.size()-2 && i > 0) {
+                    points[0]= Point3df(xkeys[i-1],value(xkeys[i-1]),0);
+                    points[1]= controls[0];
+                    points[2]= controls[3];
+                    points[3]= controls[3];
+                } else {
+                    points[0]= controls[0];
+                    points[1]= controls[0];
+                    points[2]= controls[3];
+                    points[3]= controls[3];
+                }
+                calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
 
+            }
+            controls[1] =  control_buffer[0];
+            controls[2] =  control_buffer[1];
+
+            temp.setControlPoints(  controls[0],
+                                    controls[1],
+                                    controls[2],
+                                    controls[3]);
+            temp.compute(temp._bezier,5);
+            bezier.merge(temp);
         }
-        controls[1] =  control_buffer[0];
-        controls[2] =  control_buffer[1];
-
-        temp.setControlPoints(  controls[0],
-                                controls[1],
-                                controls[2],
-                                controls[3]);
-        temp.compute(temp._bezier,5);
-        bezier.merge(temp);
     }
 
     QList<Point3df> points = bezier.get_points();

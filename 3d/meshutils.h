@@ -35,9 +35,20 @@ POSSIBILITY OF SUCH DAMAGE.
 class MeshUtils
 {
 public:
-    static void addHalfSphere(Mesh * mesh, float position_y, float radius, bool up);
+    static void addHalfSphere (Mesh * mesh, float position_y, float radius, bool up);
+    static void addHalfSphereX(Mesh * mesh, float position_x, float radius, bool up);
+    static void addHalfSphereY(Mesh * mesh, float position_y, float radius, bool up);
+    static void addHalfSphereZ(Mesh * mesh, float position_z, float radius, bool up);
+
     static void addTube(Mesh * mesh, float length, float radius);
+    static void addTubeX(Mesh * mesh, float length, float radius);
+    static void addTubeY(Mesh * mesh, float length, float radius);
+    static void addTubeZ(Mesh * mesh, float length, float radius);
+
     static void addCapsuleShape(Mesh * mesh,float length, float radius);
+    static void addCapsuleShapeX(Mesh * mesh,float length, float radius);
+    static void addCapsuleShapeY(Mesh * mesh,float length, float radius);
+    static void addCapsuleShapeZ(Mesh * mesh,float length, float radius);
 
     static void addCircle(Mesh *mesh, float position_y, float radius);
 

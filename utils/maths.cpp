@@ -33,9 +33,6 @@ double deg2rad(double angle){
     return (angle/180)*M_PI;
 }
 
-
-
-
 double absolute_value(double value){
     return (value >= 0)?value : -value;
 }
