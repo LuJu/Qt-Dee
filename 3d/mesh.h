@@ -92,6 +92,10 @@ public:
     void set_color_activated(bool color_activated) {_colors_activated = color_activated;}
     void set_normal_activated(bool normal_activated) { _normals_activated = normal_activated;}
 
+    void initBuffer() const;
+
+    void toBuffer();
+
 protected:
     void enableClientStates() const;
     void disableClientStates() const;
@@ -125,6 +129,10 @@ private:
     bool _normals_activated;
     bool _textures_activated;
     bool _colors_activated;
+    mutable QGLBuffer _vertex_buffer_object;
+    mutable QGLBuffer _index_buffer_object;
+    mutable bool _is_buffered;
+    bool _to_buffer;
 
 };
 typedef QSharedPointer<Mesh> MeshPointer;

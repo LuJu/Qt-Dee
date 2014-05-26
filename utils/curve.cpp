@@ -123,7 +123,7 @@ Curve Curve::tangentCurve() const{
 
 float Curve::get_variation(float x1,float y1,float x2,float y2) const{
     if (x1 != x2 && abs(x2-x1) > 1e-10){
-        qDebug()<<(y2-y1) / (x2-x1);
+//        qDebug()<<(y2-y1) / (x2-x1);
         return (y2-y1) / (x2-x1);
     }
     else return y1;
@@ -189,10 +189,10 @@ void Curve::toBezier() const{
             y1 = value(x1);
             y2 = value(x2);
             x_dist = (x2-x1)/4;
-            qDebug()<<"x1 :"<<x1;
-            qDebug()<<"x2 :"<<x2;
-            qDebug()<<"y1 :"<<y1;
-            qDebug()<<"y2 :"<<y2;
+//            qDebug()<<"x1 :"<<x1;
+//            qDebug()<<"x2 :"<<x2;
+//            qDebug()<<"y1 :"<<y1;
+//            qDebug()<<"y2 :"<<y2;
             temp = BezierPath();
             Point3df controls[4];
             Point3df points[4];

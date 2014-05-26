@@ -32,7 +32,8 @@ Mesh::Mesh():
     _type(triangle),
     _normals_activated(false),
     _textures_activated(false),
-    _colors_activated(false)
+    _colors_activated(false),
+    _is_buffered(false)
 {
 }
 
@@ -86,7 +87,23 @@ void Mesh::insertArrayValues() const{
         const Point3df * textures_array = &(vertices[0]._texture);
         const float *    color_array    =   vertices[0]._color;
 
-        glVertexPointer(3,GL_FLOAT,size,vertices_array);
+        if (_to_buffer && !_is_buffered){
+            initBuffer();
+        }
+
+        if (_is_buffered){
+            _vertex_buffer_object.bind();
+            glVertexPointer(3,GL_FLOAT,size,0);
+//            glVertexPointer(3,GL_FLOAT,size,vertices_array);
+            _vertex_buffer_object.release();
+            glNormalPointer(GL_FLOAT,size,0);
+            if(_colors_activated)
+                glColorPointer(4,GL_FLOAT,size,0);
+            if(_textures_activated)
+                glTexCoordPointer(3,GL_FLOAT,size,0);
+
+        } else
+            glVertexPointer(3,GL_FLOAT,size,vertices_array);
         if(_normals_activated)
             glNormalPointer(GL_FLOAT,size,normal_array);
         if(_colors_activated)
@@ -98,20 +115,67 @@ void Mesh::insertArrayValues() const{
     }
 }
 
+
+
+void Mesh::initBuffer() const {
+    _vertex_buffer_object = QGLBuffer(QGLBuffer::VertexBuffer);
+    _index_buffer_object = QGLBuffer(QGLBuffer::IndexBuffer);
+    if (_vertex_buffer_object.create() && _index_buffer_object.create()){
+            _is_buffered = true;
+            _vertex_buffer_object.bind();
+
+            const Vertex * vertices =_vertices.constData();
+            int size = sizeof(vertices[0]) * _vertices.size();
+            _vertex_buffer_object.allocate(vertices,size);
+            _vertex_buffer_object.release();
+            _index_buffer_object.bind();
+            const unsigned short * polygons = _polygons.constData();
+            size = sizeof(unsigned short) * _polygons.size();
+            _index_buffer_object.allocate(polygons,size);
+
+            _index_buffer_object.release();
+    } else {
+        qWarning()<<"Could not create QGLBuffer object";
+    }
+}
+
+void Mesh::toBuffer(){
+    _to_buffer = true;
+}
+
 void Mesh::drawElements(const unsigned short * polygons, int number_of_polygons) const{
-    switch(_type){
-    case triangle :
-        glDrawElements(GL_TRIANGLES, number_of_polygons,GL_UNSIGNED_SHORT,polygons);
-        break;
-    case lines:
-        glDrawElements(GL_LINES,     number_of_polygons,GL_UNSIGNED_SHORT,polygons);
-        break;
-    case line_strip:
-        glDrawElements(GL_LINE_STRIP,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
-        break;
-    case points:
-        glDrawElements(GL_POINTS,    number_of_polygons,GL_UNSIGNED_SHORT,polygons);
-        break;
+    if (!_is_buffered){
+        switch(_type){
+        case triangle :
+            glDrawElements(GL_TRIANGLES, number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+            break;
+        case lines:
+            glDrawElements(GL_LINES,     number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+            break;
+        case line_strip:
+            glDrawElements(GL_LINE_STRIP,number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+            break;
+        case points:
+            glDrawElements(GL_POINTS,    number_of_polygons,GL_UNSIGNED_SHORT,polygons);
+            break;
+        }
+    } else {
+        _index_buffer_object.bind();
+        switch(_type){
+        case triangle :
+            glDrawElements(GL_TRIANGLES, number_of_polygons,GL_UNSIGNED_SHORT,0);
+            break;
+        case lines:
+            glDrawElements(GL_LINES,     number_of_polygons,GL_UNSIGNED_SHORT,0);
+            break;
+        case line_strip:
+            glDrawElements(GL_LINE_STRIP,number_of_polygons,GL_UNSIGNED_SHORT,0);
+            break;
+        case points:
+            glDrawElements(GL_POINTS,    number_of_polygons,GL_UNSIGNED_SHORT,0);
+            break;
+        }
+        _index_buffer_object.release();
     }
 }
 
@@ -151,8 +215,8 @@ void Mesh::render() const{
             current_material_index++;
         }
     } else {
-        enableClientStates();
-        insertArrayValues();
+//        enableClientStates();
+//        insertArrayValues();
         polygons = _polygons.constData();
         drawElements(polygons,_polygons.size());
     }
