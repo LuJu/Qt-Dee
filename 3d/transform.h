@@ -36,6 +36,7 @@ class Transform
 {
 public:
     Transform();
+    virtual ~Transform(){}
     const QQuaternion& get_rotate() const { return _rotate; }
     void set_rotate(const QQuaternion& rotate){_rotate = rotate;}
     const Point3df& get_position() const {return _position;}
@@ -50,6 +51,14 @@ public:
         matrix.scale(_scale.x(),_scale.y(),_scale.z());
         matrix.rotate(_rotate);
         return matrix;
+    }
+
+    Transform & mult(const Transform& other){
+        Transform ret;
+        ret.set_position(this->_position + other._position);
+        ret.set_scale(this->_scale + other._scale);
+        ret.set_rotate(this->_rotate * other._rotate);
+
     }
 
 private :
