@@ -63,9 +63,6 @@ public:
     void set_interpolation(Interpolation interpolation);
     float bezierInterpolation(float target);
 
-
-    const QColor& get_color() const {return _color;}
-    void set_color(const QColor& color){_color = color;}
     QString _label;
 
     //! Returns the distance between the first and last x value
@@ -146,7 +143,6 @@ public:
 
 protected:
     Interpolation _interpolation;
-    QColor _color;
 
     //! returns the interpolation of the values depending on the _interpolation property
     /*!
