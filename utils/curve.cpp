@@ -150,9 +150,16 @@ float Curve::interpolate(float x1,float y1 ,float x2,float y2, float target) con
 }
 
 float Curve::bezierInterpolation (float target)const{
-    if (_bezier == NULL)
-        toBezier();
-    return _bezier->get_value(target);
+    Curve::const_iterator it1,it2,it3,it0;
+    it1 = lowerBound(target);
+    it2 = upperBound(target);
+    if (it1 != begin())
+        it0 = it1-1;
+    else it0 = it1;
+    if (it2 != end())
+        it3 = it2+1;
+    else it3 = it2;
+
 }
 
 float Curve::linearInterpolation(float x1,float y1,float x2,float y2, float target) const {
