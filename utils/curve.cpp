@@ -151,14 +151,40 @@ float Curve::interpolate(float x1,float y1 ,float x2,float y2, float target) con
 
 float Curve::bezierInterpolation (float target)const{
     Curve::const_iterator it1,it2,it3,it0;
+
     it1 = lowerBound(target);
-    it2 = upperBound(target);
-    if (it1 != begin())
-        it0 = it1-1;
+    if (it1.key() == target || it1 == begin()) return it1.value(); // on key or before first key
+    it1 = it1-1;
+    if (it1 != begin()) it0 == it1-1;
     else it0 = it1;
-    if (it2 != end())
-        it3 = it2+1;
-    else it3 = it2;
+    if (it1 != end()){
+        it2 = it1+1;
+        if (it2 != end())
+            it3 = it2+1;
+        else it3 = it2;
+    } else {
+        return it1.value();
+    }
+    float x1,x2,y1,y2;
+    x1 = it1.key();
+    x2 = it2.key();
+    y1 = it1.value();
+    y2 = it2.value();
+    Point3df controls[4];
+    Point3df points[4];
+    Point3df control_buffer[2];
+    controls[0] =  Point3df(x1,y1,0);
+    controls[3] =  Point3df(x2,y2,0);
+    points[0]= Point3df(it0.key(),it0.value(),0);
+    points[1]= controls[0];
+    points[2]= controls[3];
+    points[3]= Point3df(it3.key(),it3.value(),0);
+    calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
+
+    controls[1] =  control_buffer[0];
+    controls[2] =  control_buffer[1];
+    float result;
+    temp.compute(temp._bezier,3);
 
 }
 
@@ -175,6 +201,7 @@ float Curve::linearInterpolation(float x1,float y1,float x2,float y2, float targ
         ret = y1 + value_prop;
         return ret;
     }
+
 }
 
 void Curve::toBezier() const{
@@ -186,20 +213,12 @@ void Curve::toBezier() const{
     _bezier = new Curve();
     if (xkeys.size() == 1){
         _bezier->insert(xkeys[0],value(xkeys[0]));
-//    } else if (xkeys.size() == 2){
-//        _bezier->insert(xkeys[0],value(xkeys[0]));
-//        _bezier->insert(xkeys[1],value(xkeys[1]));
     } else {
         for (int i = 0; i < xkeys.size()-1;i++) {
             x1 = xkeys[i];
             x2 = xkeys[i+1];
             y1 = value(x1);
             y2 = value(x2);
-            x_dist = (x2-x1)/4;
-//            qDebug()<<"x1 :"<<x1;
-//            qDebug()<<"x2 :"<<x2;
-//            qDebug()<<"y1 :"<<y1;
-//            qDebug()<<"y2 :"<<y2;
             temp = BezierPath();
             Point3df controls[4];
             Point3df points[4];
@@ -239,7 +258,7 @@ void Curve::toBezier() const{
                                     controls[1],
                                     controls[2],
                                     controls[3]);
-            temp.compute(temp._bezier,5);
+            temp.compute(temp._bezier,3);
             bezier.merge(temp);
         }
     }

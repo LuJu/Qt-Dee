@@ -104,3 +104,17 @@ void BezierPath::compute(Point3d<float> * b, int level)
     deleteDoubles();
     _computed=true;
 }
+
+float BezierPath::interpolation(float a, float b, float c, float d, float t){
+    float ret;
+    float m_t = 1-t;
+    float t_2 = pow(t,2);
+    float t_3 = pow(t,3);
+    float m_t_2 = pow(m_t,2);
+    float m_t_3 = pow(m_t,3);
+    ret = m_t_3 * a +
+          3 * m_t_2 * t * b +
+          3 * m_t * t_2 * c +
+          t_3 * d;
+    return ret;
+}

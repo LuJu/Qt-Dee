@@ -80,7 +80,7 @@ public:
             } while (found != _bezier_points.end());
         }
     }
-
+static float interpolation(float a, float b, float c, float d, float t);
 protected:
     void appendPoints(Point3df * p);
     void bezierRecursive (const Point3df b[], int level);
