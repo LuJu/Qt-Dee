@@ -118,3 +118,13 @@ float BezierPath::interpolation(float a, float b, float c, float d, float t){
           t_3 * d;
     return ret;
 }
+float BezierPath::variation(float a, float b, float c, float d, float t){
+    float ret;
+    float m_t = 1-t;
+    float t_2 = pow(t,2);
+    float m_t_2 = pow(m_t,2);
+    ret = 3 * m_t_2 *      (b - a) +
+          6 * m_t   * t *  (c - b) +
+          3 *         t_2 *(d - c) ;
+    return ret;
+}

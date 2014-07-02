@@ -139,7 +139,7 @@ void Mesh::initBuffer() const {
     }
 }
 
-void Mesh::toBuffer(){
+void Mesh::activateBuffering(){
     _to_buffer = true;
 }
 

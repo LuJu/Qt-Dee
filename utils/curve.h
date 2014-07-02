@@ -58,8 +58,6 @@ public:
     /** Copy Assignment Operator */
     Curve& operator= (Curve other);
 
-    virtual ~Curve(){ if (_bezier) delete _bezier; }
-
     void set_interpolation(Interpolation interpolation);
     float bezierInterpolation(float target);
 
@@ -123,20 +121,8 @@ public:
         \return the tangent curve
     */
     Curve tangentCurve() const;
-    mutable Curve * _bezier;
-    Curve get_bezier(){
-        if (_bezier) {
-            qDebug()<<"return not null";
-            return *_bezier;
-
-        }
-        else{
-            qDebug()<<"return null";
-            return Curve();
-        }
-    }
-
-    void toBezier()const ;
+//    mutable Curve * _bezier;
+    Curve smoothen()const ;
     float bezierInterpolation (float target)const;
     void calculateAnchorPoints(Point3df pn, Point3df pnm1, Point3df pnp1, Point3df pnp2, float factor, Point3df* out) const;
 

@@ -94,7 +94,7 @@ public:
 
     void initBuffer() const;
 
-    void toBuffer();
+    void activateBuffering();
 
 protected:
     void enableClientStates() const;
