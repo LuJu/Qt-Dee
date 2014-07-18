@@ -61,8 +61,6 @@ public:
     void set_interpolation(Interpolation interpolation);
     float bezierInterpolation(float target);
 
-    QString _label;
-
     //! Returns the distance between the first and last x value
     float width() const {
         return (end()-1).key()-begin().key();
@@ -83,9 +81,6 @@ public:
         return min;
     }
 
-    void display()const;
-    void displayB()const;
-
     //! Returns the max of all the values in the curve
     float get_max() const{
         float max=begin().value();
@@ -96,11 +91,6 @@ public:
         }
         return max;
     }
-
-
-    const QString& get_label() const {return _label;}
-    void set_label(const QString& label){_label = label;}
-
     //! returns the value of the curve at the x given in parameter
     /*!
         The value returned depends on the _interpolation type if the x asked for is not in the curve
@@ -121,7 +111,6 @@ public:
         \return the tangent curve
     */
     Curve tangentCurve() const;
-//    mutable Curve * _bezier;
     Curve smoothen()const ;
     float bezierInterpolation (float target)const;
     void calculateAnchorPoints(Point3df pn, Point3df pnm1, Point3df pnp1, Point3df pnp2, float factor, Point3df* out) const;

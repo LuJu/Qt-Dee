@@ -27,8 +27,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "utils/curve.h"
 
 Curve::Curve(QString label) :
-    _interpolation(linear),
-    _label(label) {
+    _interpolation(linear)
+{
 }
 
 Curve::Curve() :
@@ -109,7 +109,7 @@ float Curve::tangentAt(float x, bool right) const{
         points[1]= controls[0];
         points[2]= controls[3];
         points[3]= Point3df(it3.key(),it3.value(),0);
-        calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
+        calculateAnchorPoints(points[0],points[1],points[2],points[3],.40f,control_buffer);
 
         controls[1] =  control_buffer[0];
         controls[2] =  control_buffer[1];
@@ -232,7 +232,7 @@ float Curve::bezierInterpolation (float target)const{
     points[1]= controls[0];
     points[2]= controls[3];
     points[3]= Point3df(it3.key(),it3.value(),0);
-    calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
+    calculateAnchorPoints(points[0],points[1],points[2],points[3],.40f,control_buffer);
 
     controls[1] =  control_buffer[0];
     controls[2] =  control_buffer[1];
@@ -316,7 +316,7 @@ Curve Curve::smoothen() const{
                 points[1]= controls[0];
                 points[2]= controls[3];
                 points[3]= Point3df(xkeys[i+2],value(xkeys[i+2]),0);
-                calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
+                calculateAnchorPoints(points[0],points[1],points[2],points[3],.40f,control_buffer);
             } else {
                 if (i == 0 && xkeys.size() > 2){
                     points[0]= controls[0];
@@ -334,7 +334,7 @@ Curve Curve::smoothen() const{
                     points[2]= controls[3];
                     points[3]= controls[3];
                 }
-                calculateAnchorPoints(points[0],points[1],points[2],points[3],.75f,control_buffer);
+                calculateAnchorPoints(points[0],points[1],points[2],points[3],.40f,control_buffer);
 
             }
             controls[1] =  control_buffer[0];

@@ -59,8 +59,6 @@ void  CSVParser::insertion(const QString& value){
     list<<value;
 }
 
-
-
 void CSVParser::nextLine(){
     _current_line++;
     if (_current_line == size())

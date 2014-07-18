@@ -353,7 +353,7 @@ void MeshUtils::render(const Curve& curve,int normalization, const QColor &color
     mesh.render();
 }
 
-void MeshUtils::drawGrid(QRect bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression){
+void MeshUtils::drawGrid(QRectF bounds, const QColor &color, int thickness, int horizontal_progression ,int vertical_progression){
     Mesh mesh;
     float x1=bounds.topLeft().x();
     float y1=bounds.topLeft().y();
