@@ -37,23 +37,6 @@ Mesh::Mesh():
 {
 }
 
-GLuint Mesh::loadTexture(const QString &textureName)
-{
-    QImage qim_Texture;
-    QImage qim_TempTexture;
-    GLuint texture_index;
-    if(qim_TempTexture.load(textureName)){
-        qim_Texture = QGLWidget::convertToGLFormat( qim_TempTexture );
-        glGenTextures( 1, &texture_index);
-        glBindTexture( GL_TEXTURE_2D, texture_index);
-        glTexImage2D( GL_TEXTURE_2D, 0, 3, qim_Texture.width(), qim_Texture.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, qim_Texture.bits() );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        return texture_index;
-    } else {
-        qCritical()<<"failed to load textue :"<<textureName;
-    }
-}
 
 void Mesh::enableClientStates() const{
 
@@ -93,23 +76,24 @@ void Mesh::insertArrayValues() const{
 
         if (_is_buffered){
             _vertex_buffer_object.bind();
+
             glVertexPointer(3,GL_FLOAT,size,0);
-//            glVertexPointer(3,GL_FLOAT,size,vertices_array);
-            _vertex_buffer_object.release();
-            glNormalPointer(GL_FLOAT,size,0);
+            if(_normals_activated)
+                glNormalPointer(GL_FLOAT,size,0);
             if(_colors_activated)
                 glColorPointer(4,GL_FLOAT,size,0);
             if(_textures_activated)
                 glTexCoordPointer(3,GL_FLOAT,size,0);
-
-        } else
+            _vertex_buffer_object.release();
+        } else {
             glVertexPointer(3,GL_FLOAT,size,vertices_array);
-        if(_normals_activated)
-            glNormalPointer(GL_FLOAT,size,normal_array);
-        if(_colors_activated)
-            glColorPointer(4,GL_FLOAT,size,color_array);
-        if(_textures_activated)
-            glTexCoordPointer(3,GL_FLOAT,size,textures_array);
+            if(_normals_activated)
+                glNormalPointer(GL_FLOAT,size,normal_array);
+            if(_colors_activated)
+                glColorPointer(4,GL_FLOAT,size,color_array);
+            if(_textures_activated)
+                glTexCoordPointer(3,GL_FLOAT,size,textures_array);
+        }
     } else {
 //        qDebug()<<"Attempting to render empty mesh";
     }
@@ -119,31 +103,44 @@ void Mesh::insertArrayValues() const{
 
 void Mesh::initBuffer() const {
     _vertex_buffer_object = QGLBuffer(QGLBuffer::VertexBuffer);
-    _index_buffer_object = QGLBuffer(QGLBuffer::IndexBuffer);
-    if (_vertex_buffer_object.create() && _index_buffer_object.create()){
-            _is_buffered = true;
-            _vertex_buffer_object.bind();
+    if (_vertex_buffer_object.create()){
+        _is_buffered = true;
+        _vertex_buffer_object.bind();
 
-            const Vertex * vertices =_vertices.constData();
-            int size = sizeof(vertices[0]) * _vertices.size();
-            _vertex_buffer_object.allocate(vertices,size);
-            _vertex_buffer_object.release();
-            _index_buffer_object.bind();
-            const unsigned short * polygons = _polygons.constData();
-            size = sizeof(unsigned short) * _polygons.size();
-            _index_buffer_object.allocate(polygons,size);
+        const Vertex * vertices =_vertices.constData();
+        int size = sizeof(vertices[0]) * _vertices.size();
+        _vertex_buffer_object.allocate(vertices,size);
+        _vertex_buffer_object.release();
 
-            _index_buffer_object.release();
-    } else {
-        qWarning()<<"Could not create QGLBuffer object";
-    }
+        const unsigned short * polygons = _polygons.constData();
+        for (int i = 0; i < _material_indices.size(); ++i) {
+            QGLBuffer index_buffer_object(QGLBuffer::IndexBuffer);
+            if (index_buffer_object.create()){
+                int current_polygon_index = _material_indices.keys()[i];
+                int next_polygon_index;
+                if ( i < _material_indices.size()-1)
+                    next_polygon_index = _material_indices.keys()[i+1];
+                else
+                    next_polygon_index = _polygons.size();
+
+                int number_of_polygons = next_polygon_index - current_polygon_index;
+                size = sizeof(unsigned short) * number_of_polygons;
+                index_buffer_object.bind();
+                const unsigned short * poly_pointer = polygons;
+                poly_pointer += current_polygon_index;
+                index_buffer_object.allocate(poly_pointer,size);
+                index_buffer_object.release();
+                _index_buffer_object_array.append(index_buffer_object);
+            } else qWarning()<<"Could not create index buffer object";
+        }
+    } else qWarning()<<"Could not create vertex buffer object";
 }
 
 void Mesh::activateBuffering(){
     _to_buffer = true;
 }
 
-void Mesh::drawElements(const unsigned short * polygons, int number_of_polygons) const{
+void Mesh::drawElements(const unsigned short * polygons, int number_of_polygons, int index) const{
     if (!_is_buffered){
         switch(_type){
         case triangle :
@@ -160,7 +157,7 @@ void Mesh::drawElements(const unsigned short * polygons, int number_of_polygons)
             break;
         }
     } else {
-        _index_buffer_object.bind();
+        _index_buffer_object_array[index].bind();
         switch(_type){
         case triangle :
             glDrawElements(GL_TRIANGLES, number_of_polygons,GL_UNSIGNED_SHORT,0);
@@ -175,7 +172,7 @@ void Mesh::drawElements(const unsigned short * polygons, int number_of_polygons)
             glDrawElements(GL_POINTS,    number_of_polygons,GL_UNSIGNED_SHORT,0);
             break;
         }
-        _index_buffer_object.release();
+        _index_buffer_object_array[index].release();
     }
 }
 
@@ -210,15 +207,14 @@ void Mesh::render() const{
                 polygons = &(_polygons.constData()[current_polygon_index]);
 
                 glBindTexture(GL_TEXTURE_2D,texture);
-                drawElements(polygons,number_of_polygons);
+//                glActiveTexture(GL_TEXTURE0);
+                drawElements(polygons,number_of_polygons,current_material_index);
             }
             current_material_index++;
         }
     } else {
-//        enableClientStates();
-//        insertArrayValues();
         polygons = _polygons.constData();
-        drawElements(polygons,_polygons.size());
+        drawElements(polygons,_polygons.size(),0);
     }
 
     disableClientStates();

@@ -42,6 +42,7 @@ public:
     void parseOBJ(QString filepath);
 
 private:
+        GLuint loadTexture(const QString &textureName);
     QSharedPointer<Mesh> _mesh;
     void parseMaterials(const QString& material_path);
     void fillVertice(

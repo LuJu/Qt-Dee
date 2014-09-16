@@ -5,6 +5,24 @@ OBJLoader::OBJLoader():
 {
 }
 
+GLuint OBJLoader::loadTexture(const QString &textureName)
+{
+    QImage qim_Texture;
+    QImage qim_TempTexture;
+    GLuint texture_index;
+    glEnable(GL_TEXTURE_2D);
+    if(qim_TempTexture.load(textureName)){
+        qim_Texture = QGLWidget::convertToGLFormat( qim_TempTexture );
+        glGenTextures( 1, &texture_index);
+        glBindTexture( GL_TEXTURE_2D, texture_index);
+        glTexImage2D( GL_TEXTURE_2D, 0, 3, qim_Texture.width(), qim_Texture.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, qim_Texture.bits() );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        return texture_index;
+    } else {
+        qCritical()<<"failed to load texture :"<<textureName;
+    }
+}
 
 
 void OBJLoader::parseOBJ(QString filepath){
@@ -28,7 +46,7 @@ void OBJLoader::parseOBJ(QString filepath){
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
 
         _mesh = QSharedPointer<Mesh>(new Mesh);
-
+        qDebug()<<"Parsing obj file "<<filepath;
         while (!stream.atEnd()) {
             stream >> type;
             if(type=="v" || type=="vn") {
@@ -172,7 +190,8 @@ void OBJLoader::parseMaterials(const QString& material_path){
             } else if (type == "map_Kd"){
                 stream >> buffer;
                 m._texture_file=buffer;
-                m._texture_index=_mesh->loadTexture(":/textures/"+m._texture_file);
+                qDebug()<<"load texture "<<m._texture_file;
+                m._texture_index=loadTexture(":/textures/"+m._texture_file);
             }
         }
         _mesh->_materials.append(m);

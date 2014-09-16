@@ -100,8 +100,8 @@ protected:
     void enableClientStates() const;
     void disableClientStates() const;
     void insertArrayValues() const;
-    void drawElements(const unsigned short *polygons, int number_of_polygons) const;
-    GLuint loadTexture(const QString &textureName);
+    void drawElements(const unsigned short *polygons, int number_of_polygons, int index) const;
+
 //    void parseMaterials(const QString& material_path);
 //    int findMaterialIndex(const QString& name);
 private:
@@ -130,7 +130,8 @@ private:
     bool _textures_activated;
     bool _colors_activated;
     mutable QGLBuffer _vertex_buffer_object;
-    mutable QGLBuffer _index_buffer_object;
+    mutable QList<QGLBuffer>_vertex_buffer_object_array;
+    mutable QList<QGLBuffer> _index_buffer_object_array;
     mutable bool _is_buffered;
     bool _to_buffer;
 
