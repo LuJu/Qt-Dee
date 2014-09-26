@@ -26,6 +26,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 #include "mesh.h"
 
+
 //using namespace std;
 
 Mesh::Mesh():
@@ -86,6 +87,9 @@ void Mesh::insertArrayValues() const{
                 glTexCoordPointer(3,GL_FLOAT,size,0);
             _vertex_buffer_object.release();
         } else {
+            QOpenGLVertexArrayObject lol;
+//            glEnableVertexAttribArray(0);
+//            glVertexAttribPointer(0,3,GL_FLOAT,size,vertices_array);
             glVertexPointer(3,GL_FLOAT,size,vertices_array);
             if(_normals_activated)
                 glNormalPointer(GL_FLOAT,size,normal_array);

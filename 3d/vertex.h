@@ -69,8 +69,8 @@ public:
     }
 
     Point3df _point;
-    Point3df _normal;
     Point3df _texture;
+    Point3df _normal;
     float _color[4];
 };
 bool operator==(const Vertex& a, const Vertex& b);

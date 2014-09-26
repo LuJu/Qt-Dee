@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <QGLWidget>
 #include <QFile>
 #include <QTextStream>
+#include <QOpenGLFunctions>
 
 #include "vertex.h"
 #include "material.h"
